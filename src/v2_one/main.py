@@ -47,6 +47,11 @@ def main():
         "--test-mode", action="store_true", help="Wipe database on startup for testing."
     )
 
+    # Clean-cache command
+    subparsers.add_parser(
+        "clean-cache", help="Clear temporary Python and build artifacts"
+    )
+
     args = parser.parse_args()
 
     if args.command == "ingest":
@@ -124,6 +129,31 @@ def main():
             Base.metadata.create_all(bind=engine)
             print("Database schema verified.")
         print("Application is ready.")
+    elif args.command == "clean-cache":
+        print("Cleaning cache and temporary artifacts...")
+        import shutil
+
+        # Clear __pycache__
+        count = 0
+        for root, dirs, files in os.walk("."):
+            if "__pycache__" in dirs:
+                pycache_path = os.path.join(root, "__pycache__")
+                try:
+                    shutil.rmtree(pycache_path)
+                    count += 1
+                except Exception as e:
+                    print(f"Error removing {pycache_path}: {e}")
+
+        # Clear .pytest_cache
+        if os.path.exists(".pytest_cache"):
+            try:
+                shutil.rmtree(".pytest_cache")
+                print("Removed .pytest_cache")
+            except Exception as e:
+                print(f"Error removing .pytest_cache: {e}")
+
+        print(f"Removed {count} __pycache__ directories.")
+        print("Cache cleanup complete.")
     else:
         parser.print_help()
 
