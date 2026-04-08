@@ -93,10 +93,24 @@ v2_one/
 ```
 
 ## 🧪 Testing
-Verify the database and vector extension:
+
+The project uses `pytest` for comprehensive testing of the RAG pipeline, including extraction, chunking, database search, and LLM logic.
+
+### 1. Run All Tests
 ```bash
-PYTHONPATH=src uv run python scripts/test_db_connection.py
+PYTHONPATH=src uv run pytest
 ```
+
+### 2. Test Suites
+- **Chunking**: `tests/test_rag_basics.py` (verified recursive splitting and overlap)
+- **Database**: `tests/test_database.py` (verifies schema and `pgvector` similarity search)
+- **Ollama Client**: `tests/test_ollama_client.py` (mocked API interaction)
+- **RAG Engine**: `tests/test_rag_engine.py` (rescoring and prompt logic)
+
+### 3. Pre-commit Hooks
+The project uses `pre-commit` to ensure code quality and that all tests pass before every commit.
+- **Install Hooks**: `uv run pre-commit install`
+- **Run Manually**: `uv run pre-commit run --all-files`
 
 ## 📜 License
 [MIT](LICENSE)
