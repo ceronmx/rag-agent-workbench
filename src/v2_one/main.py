@@ -1,11 +1,17 @@
 import argparse
 import sys
 import os
-from v2_one.models.database import engine, Base, SessionLocal, Chunk
+import json
+from v2_one.models.database import engine, Base, SessionLocal, Chunk, vector_search
 from v2_one.models.management import wipe_database
 from v2_one.rag.extractor import extract_text_from_pdf
 from v2_one.rag.chunker import chunk_text
-from v2_one.models.ollama_client import get_embeddings, restructure_query
+from v2_one.models.ollama_client import (
+    get_embeddings,
+    restructure_query,
+    generate_answer,
+)
+from v2_one.rag.engine import rescore_results, assemble_rag_prompt
 
 
 def main():
@@ -25,9 +31,15 @@ def main():
         "--document-name", type=str, help="Name of the document (defaults to filename)"
     )
 
-    # Query command (Restructuration + Embedding)
+    # Query command
     query_parser = subparsers.add_parser("query", help="Query the RAG system")
     query_parser.add_argument("question", type=str, help="Your question")
+    query_parser.add_argument(
+        "--no-rescore", action="store_true", help="Disable LLM rescoring"
+    )
+    query_parser.add_argument(
+        "--top-k", type=int, default=3, help="Number of chunks for final prompt"
+    )
 
     # Start command
     start_parser = subparsers.add_parser("start", help="Start the application")
@@ -65,19 +77,44 @@ def main():
             db.close()
 
     elif args.command == "query":
-        print(f"User Question: {args.question}")
+        print(f"--- USER QUESTION ---\n{args.question}\n")
 
         # 1. Restructure
-        print("Restructuring query...")
+        print("Restructuring query for vector search...")
         optimized_q = restructure_query(args.question)
-        print(f"Optimized Query: {optimized_q}")
+        print(f"Optimized Query: {optimized_q}\n")
 
-        # 2. Embed
-        print("Generating query embedding...")
-        query_emb = get_embeddings([optimized_q])[0]
-        print(f"Query embedded (dim: {len(query_emb)}).")
+        # 2. Vector Search
+        print("Searching vector database...")
+        db = SessionLocal()
+        try:
+            query_emb = get_embeddings([optimized_q])[0]
+            search_results = vector_search(
+                db, query_emb, limit=10
+            )  # Get top 10 for rescoring
 
-        print("Query processing complete. Vector search is the next step.")
+            if not search_results:
+                print("No relevant context found.")
+                return
+
+            # 3. Rescore
+            final_results = search_results
+            if not args.no_rescore:
+                print("Rescoring results using LLM...")
+                final_results = rescore_results(optimized_q, search_results)
+
+            # 4. Assemble
+            prompt = assemble_rag_prompt(args.question, final_results, top_k=args.top_k)
+
+            # 5. Generate
+            print("\n--- GENERATING ANSWER ---")
+            answer = generate_answer(prompt)
+            print(answer)
+
+        except Exception as e:
+            print(f"Error during query: {e}")
+        finally:
+            db.close()
 
     elif args.command == "start":
         print("Starting v2-one...")
