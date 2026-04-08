@@ -6,6 +6,9 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[st
     Split text into overlapping chunks of a given size.
     Uses a recursive strategy on separators: \n\n, \n, . , ' '
     """
+    if not text:
+        return []
+
     if len(text) <= chunk_size:
         return [text]
 
@@ -25,13 +28,11 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[st
             if last_sep != -1:
                 break
 
-        if last_sep == -1:
+        if last_sep == -1 or last_sep <= overlap:
             last_sep = len(chunk)
 
         chunks.append(text[start : start + last_sep].strip())
         start += last_sep - overlap
-        if start < 0:
-            start = 0
 
     return [c for c in chunks if c]
 
