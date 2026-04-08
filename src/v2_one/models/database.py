@@ -55,6 +55,30 @@ class Chunk(Base):
     embedding = Column(Vector(768))  # Dimension for nomic-embed-text-v2-moe
 
 
+from sqlalchemy import text
+
+
+def vector_search(db, query_embedding, limit=5):
+    """
+    Perform a cosine similarity search on the chunks table.
+    """
+    # Using <=> for cosine distance in pgvector
+    # Order by distance ASC (most similar first)
+    emb_str = f"[{','.join(map(str, query_embedding))}]"
+
+    query = text(
+        f"""
+        SELECT id, text, document_name, chunk_index, 1 - (embedding <=> '{emb_str}') as similarity
+        FROM chunks
+        ORDER BY embedding <=> '{emb_str}'
+        LIMIT :limit
+    """
+    )
+
+    result = db.execute(query, {"limit": limit})
+    return result.fetchall()
+
+
 def get_db():
     db = SessionLocal()
     try:
