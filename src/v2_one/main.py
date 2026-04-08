@@ -1,9 +1,11 @@
 import argparse
 import sys
-from v2_one.models.database import engine, Base
+import os
+from v2_one.models.database import engine, Base, SessionLocal, Chunk
 from v2_one.models.management import wipe_database
 from v2_one.rag.extractor import extract_text_from_pdf
 from v2_one.rag.chunker import chunk_text
+from v2_one.models.ollama_client import get_embeddings
 
 
 def main():
@@ -19,6 +21,9 @@ def main():
     ingest_parser.add_argument(
         "--overlap", type=int, default=200, help="Overlap between chunks"
     )
+    ingest_parser.add_argument(
+        "--document-name", type=str, help="Name of the document (defaults to filename)"
+    )
 
     # Start command (previous logic)
     start_parser = subparsers.add_parser("start", help="Start the application")
@@ -29,15 +34,37 @@ def main():
     args = parser.parse_args()
 
     if args.command == "ingest":
-        print(f"Ingesting {args.pdf_path}...")
+        doc_name = args.document_name or os.path.basename(args.pdf_path)
+        print(f"Ingesting {args.pdf_path} as '{doc_name}'...")
+
+        # 1. Extract
         text = extract_text_from_pdf(args.pdf_path)
-        chunks = chunk_text(text, chunk_size=args.chunk_size, overlap=args.overlap)
-        print(f"Extracted {len(text)} characters.")
-        print(f"Created {len(chunks)} chunks.")
-        for i, chunk in enumerate(chunks[:3]):
-            print(f"--- Chunk {i} ---\n{chunk[:100]}...")
-        if len(chunks) > 3:
-            print("...")
+
+        # 2. Chunk
+        chunks_text = chunk_text(text, chunk_size=args.chunk_size, overlap=args.overlap)
+        print(f"Extracted {len(text)} characters. Created {len(chunks_text)} chunks.")
+
+        # 3. Embed
+        print("Generating embeddings...")
+        embeddings = get_embeddings(chunks_text)
+
+        # 4. Store
+        print("Storing in database...")
+        db = SessionLocal()
+        try:
+            Base.metadata.create_all(bind=engine)
+            for i, (txt, emb) in enumerate(zip(chunks_text, embeddings)):
+                chunk = Chunk(
+                    text=txt, document_name=doc_name, chunk_index=i, embedding=emb
+                )
+                db.add(chunk)
+            db.commit()
+            print(f"Successfully ingested {len(chunks_text)} chunks.")
+        except Exception as e:
+            print(f"Error storing chunks: {e}")
+            db.rollback()
+        finally:
+            db.close()
 
     elif args.command == "start":
         print("Starting v2-one...")
