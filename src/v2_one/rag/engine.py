@@ -67,3 +67,33 @@ def rescore_results(query: str, results: List[Any]) -> List[Any]:
     except Exception as e:
         print(f"Rescoring failed: {e}. Returning original results.")
         return results
+
+
+def assemble_rag_prompt(query: str, rescored_results: List[Any], top_k: int = 3) -> str:
+    """
+    Build a final RAG prompt for the LLM.
+    """
+    # Use top K results only
+    top_results = rescored_results[:top_k]
+
+    context = "\n".join(
+        [
+            f"Source: {r.document_name} (Chunk {r.chunk_index})\n{r.text}"
+            for r in top_results
+        ]
+    )
+
+    prompt = f"""
+    You are a helpful and knowledgeable assistant. Use the provided context to answer the user question accurately.
+    If the context does not contain enough information to answer, say so.
+    
+    ---
+    CONTEXT:
+    {context}
+    ---
+    
+    USER QUESTION: {query}
+    
+    ANSWER:"""
+
+    return prompt
