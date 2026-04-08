@@ -5,63 +5,70 @@ A modern Retrieval-Augmented Generation (RAG) system using Python v3, PostgreSQL
 ## 🚀 Features
 
 - **Modern Python Structure**: Follows `src/` layout with modular packages.
+- **Full RAG Pipeline**: Ingestion, Chunking, Embedding, Restructuration, Search, Rescoring, and Generation.
 - **Local RAG Stack**: Uses Ollama for embeddings (`nomic-embed-text-v2-moe`) and LLM (`llama3.2`).
+- **Query Optimization**: Automatically restructures user queries for better vector search results.
+- **LLM Rescoring**: Reranks vector search results using an LLM for higher precision.
 - **Vector Database**: PostgreSQL 17 with the `pgvector` extension running in Docker.
 - **Dependency Management**: Powered by `uv` for fast and reliable builds.
-- **Test Mode**: Built-in support to wipe and recreate the database schema for clean testing.
 
 ## 📋 Prerequisites
 
 - **Python**: 3.10 or higher.
 - **uv**: [Install uv](https://github.com/astral-sh/uv) for dependency management.
 - **Docker & Docker Compose**: For running the PostgreSQL database.
-- **Ollama**: [Install Ollama](https://ollama.ai/) for local model execution.
+- **Ollama**: [Install Ollama](https://ollama.ai/) and pull required models:
+  ```bash
+  ollama pull llama3.2
+  ollama pull nomic-embed-text-v2-moe
+  ```
 
 ## 🛠️ Getting Started
 
-### 1. Clone the repository
-```bash
-git clone <repository-url>
-cd v2_one
-```
-
-### 2. Set up environment variables
-Copy the example environment file and adjust as needed:
+### 1. Set up Environment
 ```bash
 cp .env.example .env
+# Edit .env if needed (OLLAMA_BASE_URL, DB credentials, etc.)
 ```
 
-### 3. Start the Database
-Run the PostgreSQL container with the `pgvector` extension:
+### 2. Start the Database
 ```bash
 docker compose up -d
 ```
-The database will automatically initialize the `vector` extension on first start.
 
-### 4. Install Dependencies
-Sync the virtual environment using `uv`:
+### 3. Install Dependencies
 ```bash
 uv sync
 ```
 
 ## 🏃 Usage
 
-### Running the Application
-Execute the main entry point:
+### 1. Ingest Documents
+Process a PDF file, chunk it, and store embeddings in the database:
 ```bash
-uv run v2-one
+uv run v2-one ingest /path/to/document.pdf --document-name "MyDoc"
 ```
+Optional flags: `--chunk-size 1000`, `--overlap 200`.
 
-### Development/Test Mode
-To wipe the database and recreate the schema (useful during development):
+### 2. Query the System
+Ask questions based on the ingested documents:
 ```bash
-uv run v2-one --test-mode
+uv run v2-one query "What are the key findings in the document?"
 ```
+The system will:
+1. **Restructure** your query for search.
+2. **Search** the vector database.
+3. **Rescore** the top results using the LLM.
+4. **Generate** a final answer based on the best context.
 
-### Manual Database Wipe
-You can also run the management utility directly:
+**Options:**
+- `--no-rescore`: Skip the LLM reranking step for faster (but potentially less precise) results.
+- `--top-k`: Number of context chunks to include in the final prompt (default: 3).
+
+### 3. Development / Test Mode
+Initialize or wipe the database schema:
 ```bash
-PYTHONPATH=src uv run python src/v2_one/models/management.py
+uv run v2-one start --test-mode
 ```
 
 ## 📂 Project Structure
@@ -70,21 +77,23 @@ PYTHONPATH=src uv run python src/v2_one/models/management.py
 v2_one/
 ├── src/
 │   └── v2_one/
-│       ├── main.py        # Entry point & CLI
-│       ├── rag/           # RAG logic (indexing, retrieval)
-│       ├── models/        # Database models & Ollama integration
-│       │   ├── database.py    # SQLAlchemy connection
-│       │   └── management.py  # DB utility functions
-│       └── utils/         # Helper functions
-├── tests/                 # Test suite
-├── scripts/               # SQL & Shell utility scripts
-├── docker-compose.yml     # Infrastructure (Postgres + pgvector)
-├── pyproject.toml         # Package & Dependency config
-└── README.md
+│       ├── main.py           # CLI entry point
+│       ├── rag/
+│       │   ├── extractor.py  # PDF text extraction (PyMuPDF)
+│       │   ├── chunker.py    # Recursive text splitting
+│       │   └── engine.py     # Rescoring & Prompt assembly
+│       ├── models/
+│       │   ├── database.py   # SQLAlchemy & pgvector search
+│       │   ├── management.py # DB schema utilities
+│       │   └── ollama_client.py # Ollama API integration
+│       └── utils/
+├── scripts/                  # Test & Utility scripts
+├── docker-compose.yml        # PostgreSQL + pgvector
+└── pyproject.toml
 ```
 
 ## 🧪 Testing
-Verify the database connection:
+Verify the database and vector extension:
 ```bash
 PYTHONPATH=src uv run python scripts/test_db_connection.py
 ```
