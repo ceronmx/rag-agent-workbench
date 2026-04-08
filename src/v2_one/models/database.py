@@ -1,7 +1,7 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.types import UserDefinedType
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +18,41 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+class Vector(UserDefinedType):
+    def __init__(self, dim):
+        self.dim = dim
+
+    def get_col_spec(self, **kw):
+        return f"vector({self.dim})"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is None:
+                return None
+            return f"[{','.join(map(str, value))}]"
+
+        return process
+
+    def result_processor(self, dialect, coltype):
+        def process(value):
+            if value is None:
+                return None
+            # PG returns it as a string like "[1,2,3]"
+            return [float(x) for x in value.strip("[]").split(",")]
+
+        return process
+
+
+class Chunk(Base):
+    __tablename__ = "chunks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(Text, nullable=False)
+    document_name = Column(String, index=True)
+    chunk_index = Column(Integer)
+    embedding = Column(Vector(768))  # Dimension for nomic-embed-text-v2-moe
 
 
 def get_db():
