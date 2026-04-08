@@ -77,8 +77,21 @@ bd close <id>         # Complete work
 7. **Hand off** - Provide context for next session
 
 **CRITICAL RULES:**
+
+At session start:
+1. Run `bd ready` to find highest-priority unblocked work
+2. Run `bd show <id>` for full context on the chosen task
+3. Update status: `bd update <id> --status in_progress`
+
+At session end (Land the Plane):
+1. Run quality gates (lint, test, typecheck)
+2. Create new issues for discovered work
+3. Close completed issues with `bd close <id> --reason "..."`
+4. Run `bd sync` to export state
+5. Commit and push
+<!-- 
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- If push fails, resolve and retry until it succeeds -->
 <!-- END BEADS INTEGRATION -->
