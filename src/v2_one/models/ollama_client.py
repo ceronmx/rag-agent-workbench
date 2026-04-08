@@ -13,16 +13,57 @@ LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
 def get_embeddings(texts: List[str]) -> List[List[float]]:
     """
     Get embeddings for a list of strings from Ollama.
+    Uses the newer /api/embed endpoint for batching if available.
     """
+    if not texts:
+        return []
+
+    # Try batching with /api/embed first
+    try:
+        with httpx.Client(timeout=120.0) as client:
+            response = client.post(
+                f"{OLLAMA_BASE_URL}/api/embed",
+                json={"model": EMBEDDING_MODEL, "input": texts},
+            )
+            if response.status_code == 200:
+                return response.json()["embeddings"]
+
+            print(
+                f"Warning: /api/embed returned {response.status_code}. Falling back to sequential requests."
+            )
+    except Exception as e:
+        print(
+            f"Warning: /api/embed failed with {e}. Falling back to sequential requests."
+        )
+
+    # Fallback to sequential requests if /api/embed is not available or fails
     embeddings = []
     with httpx.Client(timeout=60.0) as client:
         for text in texts:
-            response = client.post(
-                f"{OLLAMA_BASE_URL}/api/embeddings",
-                json={"model": EMBEDDING_MODEL, "prompt": text},
-            )
-            response.raise_for_status()
-            embeddings.append(response.json()["embedding"])
+            if not text:
+                continue
+
+            # Simple retry loop for 500 errors
+            for attempt in range(3):
+                response = client.post(
+                    f"{OLLAMA_BASE_URL}/api/embeddings",
+                    json={"model": EMBEDDING_MODEL, "prompt": text},
+                )
+                if response.status_code == 500 and attempt < 2:
+                    print(
+                        f"Retrying embedding request (attempt {attempt + 1}) after 500 error..."
+                    )
+                    continue
+
+                try:
+                    response.raise_for_status()
+                    embeddings.append(response.json()["embedding"])
+                    break
+                except httpx.HTTPStatusError as e:
+                    print(f"Error for chunk: {text[:100]}...")
+                    print(f"Ollama error response: {response.text}")
+                    raise e
+
     return embeddings
 
 
