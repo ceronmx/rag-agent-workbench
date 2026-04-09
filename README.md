@@ -6,6 +6,7 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) system using Pyt
 
 -   **Asynchronous Core**: Fully non-blocking I/O using `AsyncOllamaClient` and `asyncio` for improved concurrency and responsiveness.
 -   **Local RAG Stack**: Uses Ollama for embeddings (`nomic-embed-text-v2-moe`) and LLM (`llama3.2`) locally.
+-   **Performance Evaluation**: Integrated **RAGAS** framework to quantitatively measure system performance (Faithfulness, Relevancy, Precision).
 -   **Database Migrations**: Integrated **Alembic** for robust database schema management and automated migrations on startup.
 -   **Structured Logging**: Centralized, configurable logging system replacing informal prints for better observability.
 -   **Smart Retrieval**:
@@ -55,7 +56,6 @@ Process a PDF file, chunk it, and store embeddings in the database:
 ```bash
 uv run rag ingest /path/to/document.pdf --document-name "MyDoc"
 ```
-Optional flags: `--chunk-size 1000`, `--overlap 200`.
 
 ### 3. Query the System
 Ask questions based on the ingested documents:
@@ -63,7 +63,18 @@ Ask questions based on the ingested documents:
 uv run rag query "What are the key findings in the document?"
 ```
 
-### 4. Utility: Clean Cache
+### 4. Evaluate Performance (RAGAS)
+Measure how well your RAG pipeline is performing across different configurations:
+```bash
+# 1. (Optional) Edit your golden set benchmark
+# File: data/eval/golden_set.json
+
+# 2. Run comparative evaluation
+uv run rag evaluate
+```
+This generates **Markdown** and **CSV** reports in `data/eval/reports/` comparing 4 modes: Baseline, Restructure Only, Rerank Only, and Full.
+
+### 5. Utility: Clean Cache
 Clear `__pycache__` and `.pytest_cache` directories:
 ```bash
 uv run rag clean-cache
@@ -75,6 +86,7 @@ uv run rag clean-cache
 src/rag/
 ├── main.py           # CLI entry point (Async)
 ├── rag/
+│   ├── pipeline.py   # Reusable RAG pipeline logic
 │   ├── extractor.py  # PDF text extraction
 │   ├── chunker.py    # Recursive text splitting
 │   └── engine.py     # Rescoring & Prompt assembly
@@ -83,6 +95,9 @@ src/rag/
 │   ├── management.py # DB schema utilities
 │   └── ollama_client.py # Async Ollama SDK integration
 └── utils/
+    ├── evaluation.py # RAGAS metric initialization
+    ├── reporting.py  # Markdown/CSV report generators
+    ├── datasets.py   # Golden set management
     ├── logger.py     # Centralized logging configuration
     └── migrations.py # Alembic programmatic runner
 ```
