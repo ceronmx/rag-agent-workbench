@@ -7,6 +7,7 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) system using Pyt
 -   **Asynchronous Core**: Fully non-blocking I/O using `AsyncOllamaClient` and `asyncio` for improved concurrency and responsiveness.
 -   **Local RAG Stack**: Uses Ollama for embeddings (`nomic-embed-text-v2-moe`) and LLM (`llama3.2`) locally.
 -   **Performance Evaluation**: Integrated **RAGAS** framework to quantitatively measure system performance (Faithfulness, Relevancy, Precision).
+-   **Robust JSON Interceptor**: Custom monkey-patched LLM client that automatically cleans raw responses, stripping markdown noise to ensure reliable evaluation parsing.
 -   **Database Migrations**: Integrated **Alembic** for robust database schema management and automated migrations on startup.
 -   **Structured Logging**: Centralized, configurable logging system replacing informal prints for better observability.
 -   **Smart Retrieval**:
@@ -23,6 +24,8 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) system using Pyt
     ```bash
     ollama pull llama3.2
     ollama pull nomic-embed-text-v2-moe
+    # Recommended for evaluation phase:
+    ollama pull llama3.1:8b
     ```
 
 ## 🛠️ Getting Started
@@ -74,6 +77,8 @@ uv run rag evaluate
 ```
 This generates **Markdown** and **CSV** reports in `data/eval/reports/` comparing 4 modes: Baseline, Restructure Only, Rerank Only, and Full.
 
+**Pro Tip:** For higher evaluation accuracy, set `EVAL_MODEL=llama3.1:8b` (or larger) in your `.env`. The system uses a "Teacher-Judge" pattern where a larger model grades the smaller application model.
+
 ### 5. Utility: Clean Cache
 Clear `__pycache__` and `.pytest_cache` directories:
 ```bash
@@ -95,9 +100,10 @@ src/rag/
 │   ├── management.py # DB schema utilities
 │   └── ollama_client.py # Async Ollama SDK integration
 └── utils/
-    ├── evaluation.py # RAGAS metric initialization
+    ├── evaluation.py # RAGAS metric initialization & Robust Interceptor
     ├── reporting.py  # Markdown/CSV report generators
     ├── datasets.py   # Golden set management
+    ├── llm_robustness.py # JSON cleaning logic
     ├── logger.py     # Centralized logging configuration
     └── migrations.py # Alembic programmatic runner
 ```
