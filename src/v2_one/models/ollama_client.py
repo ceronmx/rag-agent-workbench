@@ -2,6 +2,7 @@ import os
 import ollama
 from typing import List
 from dotenv import load_dotenv
+from v2_one.utils.logger import logger
 
 load_dotenv()
 
@@ -9,23 +10,23 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text-v2-moe")
 LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
 
-client = ollama.Client(host=OLLAMA_BASE_URL)
+client = ollama.AsyncClient(host=OLLAMA_BASE_URL)
 
 
-def get_embeddings(texts: List[str]) -> List[List[float]]:
+async def get_embeddings(texts: List[str]) -> List[List[float]]:
     """
-    Get embeddings for a list of strings from Ollama using the official SDK.
+    Get embeddings for a list of strings from Ollama using the official SDK (Async).
     """
     if not texts:
         return []
 
     try:
         # The SDK uses the newer /api/embed endpoint when calling embed()
-        response = client.embed(model=EMBEDDING_MODEL, input=texts)
+        response = await client.embed(model=EMBEDDING_MODEL, input=texts)
         return response.embeddings
     except Exception as e:
-        print(
-            f"Warning: Batch embedding failed with {e}. Falling back to sequential requests."
+        logger.warning(
+            f"Batch embedding failed with {e}. Falling back to sequential requests."
         )
 
     # Fallback to sequential requests if batching fails
@@ -38,26 +39,24 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
         for attempt in range(3):
             try:
                 # generate embeddings for a single prompt
-                # Note: older Ollama versions might not have /api/embed,
-                # but the SDK might try to use it. If it fails, we try a single prompt.
-                response = client.embeddings(model=EMBEDDING_MODEL, prompt=text)
+                response = await client.embeddings(model=EMBEDDING_MODEL, prompt=text)
                 embeddings.append(response.embedding)
                 break
             except Exception as ex:
                 if attempt < 2:
-                    print(
+                    logger.info(
                         f"Retrying embedding request (attempt {attempt + 1}) after error: {ex}"
                     )
                     continue
-                print(f"Error for chunk: {text[:100]}...")
+                logger.error(f"Error for chunk: {text[:100]}...")
                 raise ex
 
     return embeddings
 
 
-def restructure_query(user_query: str) -> str:
+async def restructure_query(user_query: str) -> str:
     """
-    Use LLM to restructure the user query for better vector search.
+    Use LLM to restructure the user query for better vector search (Async).
     """
     prompt = f"""
     You are an expert at optimizing search queries for a vector database.
@@ -68,7 +67,7 @@ def restructure_query(user_query: str) -> str:
     
     Optimized search query:"""
 
-    response = client.generate(
+    response = await client.generate(
         model=LLM_MODEL,
         prompt=prompt,
         stream=False,
@@ -77,18 +76,24 @@ def restructure_query(user_query: str) -> str:
     return response.response.strip()
 
 
-def generate_answer(prompt: str, stream: bool = False):
+async def generate_answer(prompt: str, stream: bool = False):
     """
-    Call Ollama generate for final answer.
+    Call Ollama generate for final answer (Async).
     """
     if stream:
-        return client.generate(model=LLM_MODEL, prompt=prompt, stream=True)
+        return await client.generate(model=LLM_MODEL, prompt=prompt, stream=True)
     else:
-        response = client.generate(model=LLM_MODEL, prompt=prompt, stream=False)
+        response = await client.generate(model=LLM_MODEL, prompt=prompt, stream=False)
         return response.response
 
 
 if __name__ == "__main__":
-    test_q = "What are the main benefits of using pgvector in Postgres for RAG?"
-    print(f"Original: {test_q}")
-    print(f"Restructured: {restructure_query(test_q)}")
+    import asyncio
+
+    async def main():
+        test_q = "What are the main benefits of using pgvector in Postgres for RAG?"
+        print(f"Original: {test_q}")
+        res = await restructure_query(test_q)
+        print(f"Restructured: {res}")
+
+    asyncio.run(main())

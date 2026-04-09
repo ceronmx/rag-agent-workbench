@@ -1,4 +1,5 @@
 from v2_one.models.database import engine, Base
+from v2_one.utils.logger import logger
 
 
 def wipe_database():
@@ -6,11 +7,12 @@ def wipe_database():
     Drops all tables and recreates them.
     Use with caution!
     """
-    print("Wiping database...")
+    logger.info("Wiping database...")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    print("Database wiped and schema recreated.")
+    logger.info("Database wiped and schema recreated.")
 
 
 if __name__ == "__main__":
+    print("WARNING: This will wipe the entire database.")
     wipe_database()

@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import AsyncMock, MagicMock
 from v2_one.rag.engine import rescore_results, assemble_rag_prompt
 from dataclasses import dataclass
 
@@ -11,7 +12,8 @@ class MockResult:
     similarity: float
 
 
-def test_rescore_results_basic(mocker):
+@pytest.mark.asyncio
+async def test_rescore_results_basic(mocker):
     # Setup mock results
     results = [
         MockResult("Apple", "fruits.pdf", 0, 0.9),
@@ -19,12 +21,14 @@ def test_rescore_results_basic(mocker):
         MockResult("Cherry", "fruits.pdf", 2, 0.7),
     ]
 
-    # Mock LLM response to pick Banana (index 1) then Apple (index 0)
-    mock_post = mocker.patch("httpx.Client.post")
-    mock_post.return_value.json.return_value = {"response": "1, 0"}
-    mock_post.return_value.raise_for_status = mocker.Mock()
+    # Mock the client.generate method
+    mock_client = mocker.patch("v2_one.rag.engine.client", new_callable=AsyncMock)
 
-    rescored = rescore_results("query about bananas", results)
+    mock_response = MagicMock()
+    mock_response.response = "1, 0"
+    mock_client.generate.return_value = mock_response
+
+    rescored = await rescore_results("query about bananas", results)
 
     # Check if Banana is first now
     assert len(rescored) == 3
@@ -35,17 +39,20 @@ def test_rescore_results_basic(mocker):
     )  # Cherry was not in the list, so it's added at the end
 
 
-def test_rescore_results_empty():
-    assert rescore_results("query", []) == []
+@pytest.mark.asyncio
+async def test_rescore_results_empty():
+    assert await rescore_results("query", []) == []
 
 
-def test_rescore_results_error(mocker):
+@pytest.mark.asyncio
+async def test_rescore_results_error(mocker):
     results = [MockResult("Apple", "fruits.pdf", 0, 0.9)]
-    # Mock an error in the post request
-    mocker.patch("httpx.Client.post", side_effect=Exception("API Error"))
+    # Mock an error in the generate request
+    mock_client = mocker.patch("v2_one.rag.engine.client", new_callable=AsyncMock)
+    mock_client.generate.side_effect = Exception("API Error")
 
     # Should return original results on failure
-    rescored = rescore_results("query", results)
+    rescored = await rescore_results("query", results)
     assert rescored == results
 
 

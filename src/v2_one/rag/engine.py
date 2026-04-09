@@ -1,17 +1,13 @@
 from typing import List, Dict, Any
-import httpx
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
+import re
+from v2_one.models.ollama_client import client, LLM_MODEL
+from v2_one.utils.logger import logger
 
 
-def rescore_results(query: str, results: List[Any]) -> List[Any]:
+async def rescore_results(query: str, results: List[Any]) -> List[Any]:
     """
-    Rerank vector search results using an LLM.
+    Rerank vector search results using an LLM (Async).
     This is a simple implementation that asks the LLM to pick the most relevant chunks.
     """
     if not results:
@@ -32,40 +28,33 @@ def rescore_results(query: str, results: List[Any]) -> List[Any]:
     Relevant Indices:"""
 
     try:
-        with httpx.Client(timeout=60.0) as client:
-            response = client.post(
-                f"{OLLAMA_BASE_URL}/api/generate",
-                json={
-                    "model": LLM_MODEL,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"temperature": 0.0},
-                },
-            )
-            response.raise_for_status()
-            indices_str = response.json()["response"].strip()
+        response = await client.generate(
+            model=LLM_MODEL,
+            prompt=prompt,
+            stream=False,
+            options={"temperature": 0.0},
+        )
+        indices_str = response.response.strip()
 
-            # Extract integers from response
-            import re
+        # Extract integers from response
+        indices = [int(i) for i in re.findall(r"\d+", indices_str)]
 
-            indices = [int(i) for i in re.findall(r"\d+", indices_str)]
+        # Reorder and filter
+        rescored = []
+        seen = set()
+        for idx in indices:
+            if 0 <= idx < len(results) and idx not in seen:
+                rescored.append(results[idx])
+                seen.add(idx)
 
-            # Reorder and filter
-            rescored = []
-            seen = set()
-            for idx in indices:
-                if 0 <= idx < len(results) and idx not in seen:
-                    rescored.append(results[idx])
-                    seen.add(idx)
+        # Add remaining results that weren't picked (optional, but keeps all data)
+        for i, r in enumerate(results):
+            if i not in seen:
+                rescored.append(r)
 
-            # Add remaining results that weren't picked (optional, but keeps all data)
-            for i, r in enumerate(results):
-                if i not in seen:
-                    rescored.append(r)
-
-            return rescored
+        return rescored
     except Exception as e:
-        print(f"Rescoring failed: {e}. Returning original results.")
+        logger.error(f"Rescoring failed: {e}. Returning original results.")
         return results
 
 
