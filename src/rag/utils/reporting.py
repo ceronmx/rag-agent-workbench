@@ -21,12 +21,28 @@ def generate_evaluation_report(
         row = {"configuration": name}
         try:
             # result is a Ragas EvaluationResult object
-            # In RAGAS 0.4.x, the result object itself has the mean scores
-            # if we iterate or convert to dict.
-            for metric_name, score in result.items():
-                row[metric_name] = score
+            # In RAGAS 0.4.x, result.scores is a list of dictionaries (one per row)
+            if hasattr(result, "scores") and result.scores:
+                # Calculate mean for each metric key
+                import numpy as np
+
+                keys = result.scores[0].keys()
+                for key in keys:
+                    values = [
+                        d[key] for d in result.scores if key in d and d[key] is not None
+                    ]
+                    row[key] = np.mean(values) if values else 0.0
+            else:
+                logger.warning(f"No scores found in result for {name}")
+                row.update(
+                    {
+                        "faithfulness": 0.0,
+                        "answer_relevancy": 0.0,
+                        "context_precision": 0.0,
+                    }
+                )
         except Exception as e:
-            # If evaluation failed or returned no scores
+            # If extraction failed
             logger.warning(f"Failed to extract metrics for {name}: {e}")
             row.update(
                 {"faithfulness": 0.0, "answer_relevancy": 0.0, "context_precision": 0.0}

@@ -1,8 +1,8 @@
 import asyncio
 from typing import List, Dict, Any, Optional
-from rag.models.database import SessionLocal, vector_search
+from rag.models.database import SessionLocal, vector_search, keyword_search
 from rag.models.ollama_client import get_embeddings, restructure_query, generate_answer
-from rag.rag.engine import rescore_results, assemble_rag_prompt
+from rag.rag.engine import rescore_results, assemble_rag_prompt, reciprocal_rank_fusion
 from rag.utils.logger import logger
 
 
@@ -10,6 +10,7 @@ async def run_rag_pipeline(
     question: str,
     use_restructuring: bool = True,
     use_rescoring: bool = True,
+    search_mode: str = "vector",
     top_k: int = 3,
 ) -> Dict[str, Any]:
     """
@@ -22,21 +23,33 @@ async def run_rag_pipeline(
         logger.debug(f"Restructuring query: {question}")
         search_query = await restructure_query(question)
 
-    # 2. Vector Search
-    logger.debug(f"Searching for: {search_query}")
+    # 2. Search
+    logger.debug(f"Searching for: {search_query} (Mode: {search_mode})")
     db = SessionLocal()
     try:
-        query_emb_list = await get_embeddings([search_query])
-        query_emb = query_emb_list[0]
+        search_results = []
 
-        # Get top 10 for potential rescoring
-        search_results = vector_search(db, query_emb, limit=10)
+        if search_mode in ["vector", "hybrid"]:
+            query_emb_list = await get_embeddings([search_query])
+            query_emb = query_emb_list[0]
+            vector_results = vector_search(db, query_emb, limit=10)
+            if search_mode == "vector":
+                search_results = vector_results
+
+        if search_mode in ["keyword", "hybrid"]:
+            keyword_results = keyword_search(db, search_query, limit=10)
+            if search_mode == "keyword":
+                search_results = keyword_results
+
+        if search_mode == "hybrid":
+            search_results = reciprocal_rank_fusion(vector_results, keyword_results)
 
         if not search_results:
             return {
                 "answer": "No relevant context found.",
                 "contexts": [],
                 "search_query": search_query,
+                "search_mode": search_mode,
             }
 
         # 3. Rescore (Optional)
@@ -58,6 +71,7 @@ async def run_rag_pipeline(
             "search_query": search_query,
             "used_restructuring": use_restructuring,
             "used_rescoring": use_rescoring,
+            "search_mode": search_mode,
         }
     finally:
         db.close()

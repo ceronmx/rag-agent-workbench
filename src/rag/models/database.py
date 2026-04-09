@@ -1,5 +1,14 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Text,
+    Index,
+    func,
+    text as sa_text,
+)
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.types import UserDefinedType
 from dotenv import load_dotenv
@@ -54,8 +63,13 @@ class Chunk(Base):
     chunk_index = Column(Integer)
     embedding = Column(Vector(768))  # Dimension for nomic-embed-text-v2-moe
 
-
-from sqlalchemy import text
+    __table_args__ = (
+        Index(
+            "idx_chunks_fts",
+            sa_text("to_tsvector('english', text)"),
+            postgresql_using="gin",
+        ),
+    )
 
 
 def vector_search(db, query_embedding, limit=5):
@@ -66,7 +80,7 @@ def vector_search(db, query_embedding, limit=5):
     # Order by distance ASC (most similar first)
     emb_str = f"[{','.join(map(str, query_embedding))}]"
 
-    query = text(
+    query = sa_text(
         f"""
         SELECT id, text, document_name, chunk_index, 1 - (embedding <=> '{emb_str}') as similarity
         FROM chunks
@@ -76,6 +90,24 @@ def vector_search(db, query_embedding, limit=5):
     )
 
     result = db.execute(query, {"limit": limit})
+    return result.fetchall()
+
+
+def keyword_search(db, query_text, limit=5):
+    """
+    Perform a full-text search on the chunks table using websearch_to_tsquery.
+    """
+    query = sa_text(
+        """
+        SELECT id, text, document_name, chunk_index, ts_rank(to_tsvector('english', text), websearch_to_tsquery('english', :query)) as similarity
+        FROM chunks
+        WHERE to_tsvector('english', text) @@ websearch_to_tsquery('english', :query)
+        ORDER BY similarity DESC
+        LIMIT :limit
+    """
+    )
+
+    result = db.execute(query, {"query": query_text, "limit": limit})
     return result.fetchall()
 
 

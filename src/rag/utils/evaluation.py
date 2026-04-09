@@ -118,19 +118,52 @@ def run_ragas_evaluation(questions, answers, contexts, ground_truths=None):
         show_progress=True,
     )
 
+    logger.info(f"DEBUG: evaluate result.scores raw: {result.scores}")
     return result
 
 
 async def run_comparative_evaluation(golden_set: List[Dict[str, str]]):
     """
-    Run the golden set through 4 different configurations.
+    Run the golden set through different configurations.
     Returns a dictionary of result sets.
     """
     configs = [
-        {"restructure": False, "rescore": False, "name": "baseline"},
-        {"restructure": True, "rescore": False, "name": "restructure_only"},
-        {"restructure": False, "rescore": True, "name": "rescore_only"},
-        {"restructure": True, "rescore": True, "name": "full"},
+        {
+            "restructure": False,
+            "rescore": False,
+            "search_mode": "vector",
+            "name": "baseline",
+        },
+        {
+            "restructure": True,
+            "rescore": False,
+            "search_mode": "vector",
+            "name": "restructure_only",
+        },
+        {
+            "restructure": False,
+            "rescore": True,
+            "search_mode": "vector",
+            "name": "rescore_only",
+        },
+        {
+            "restructure": True,
+            "rescore": True,
+            "search_mode": "vector",
+            "name": "full_vector",
+        },
+        {
+            "restructure": False,
+            "rescore": False,
+            "search_mode": "hybrid",
+            "name": "hybrid_baseline",
+        },
+        {
+            "restructure": True,
+            "rescore": True,
+            "search_mode": "hybrid",
+            "name": "hybrid_full",
+        },
     ]
 
     results_by_config = {}
@@ -143,6 +176,7 @@ async def run_comparative_evaluation(golden_set: List[Dict[str, str]]):
                 item["question"],
                 use_restructuring=config["restructure"],
                 use_rescoring=config["rescore"],
+                search_mode=config["search_mode"],
             )
             mode_results.append(
                 {

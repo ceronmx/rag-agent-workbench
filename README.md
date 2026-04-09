@@ -7,6 +7,7 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) system using Pyt
 -   **Asynchronous Core**: Fully non-blocking I/O using `AsyncOllamaClient` and `asyncio` for improved concurrency and responsiveness.
 -   **Local RAG Stack**: Uses Ollama for embeddings (`nomic-embed-text-v2-moe`) and LLM (`llama3.2`) locally.
 -   **Performance Evaluation**: Integrated **RAGAS** framework to quantitatively measure system performance (Faithfulness, Relevancy, Precision).
+-   **Hybrid Search**: Combines semantic **Vector Search** with traditional **Keyword Search (FTS)** using Reciprocal Rank Fusion (RRF) for better precision.
 -   **Robust JSON Interceptor**: Custom monkey-patched LLM client that automatically cleans raw responses, stripping markdown noise to ensure reliable evaluation parsing.
 -   **Database Migrations**: Integrated **Alembic** for robust database schema management and automated migrations on startup.
 -   **Structured Logging**: Centralized, configurable logging system replacing informal prints for better observability.
@@ -66,6 +67,12 @@ Ask questions based on the ingested documents:
 uv run rag query "What are the key findings in the document?"
 ```
 
+**New:** Support for Hybrid search:
+```bash
+uv run rag query "What is pgvector?" --search-mode hybrid
+```
+Available modes: `vector` (default), `keyword`, `hybrid`.
+
 ### 4. Evaluate Performance (RAGAS)
 Measure how well your RAG pipeline is performing across different configurations:
 ```bash
@@ -75,7 +82,7 @@ Measure how well your RAG pipeline is performing across different configurations
 # 2. Run comparative evaluation
 uv run rag evaluate
 ```
-This generates **Markdown** and **CSV** reports in `data/eval/reports/` comparing 4 modes: Baseline, Restructure Only, Rerank Only, and Full.
+This generates **Markdown** and **CSV** reports in `data/eval/reports/` comparing configurations: Baseline, Restructure Only, Rerank Only, Full Vector, Hybrid Baseline, and Hybrid Full.
 
 **Pro Tip:** For higher evaluation accuracy, set `EVAL_MODEL=llama3.1:8b` (or larger) in your `.env`. The system uses a "Teacher-Judge" pattern where a larger model grades the smaller application model.
 

@@ -50,6 +50,13 @@ async def async_main():
         "--no-rescore", action="store_true", help="Disable LLM rescoring"
     )
     query_parser.add_argument(
+        "--search-mode",
+        type=str,
+        choices=["vector", "keyword", "hybrid"],
+        default="vector",
+        help="Search mode to use (default: vector)",
+    )
+    query_parser.add_argument(
         "--top-k", type=int, default=3, help="Number of chunks for final prompt"
     )
 
@@ -114,9 +121,11 @@ async def async_main():
                 args.question,
                 use_restructuring=True,
                 use_rescoring=not args.no_rescore,
+                search_mode=args.search_mode,
                 top_k=args.top_k,
             )
 
+            logger.info(f"Search Mode: {result['search_mode']}")
             logger.info(f"Optimized Query: {result['search_query']}\n")
             if result["contexts"]:
                 if not args.no_rescore:

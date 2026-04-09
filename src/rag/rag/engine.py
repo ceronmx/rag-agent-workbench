@@ -86,3 +86,28 @@ def assemble_rag_prompt(query: str, rescored_results: List[Any], top_k: int = 3)
     ANSWER:"""
 
     return prompt
+
+
+def reciprocal_rank_fusion(
+    vector_results: List[Any], keyword_results: List[Any], k: int = 60
+) -> List[Any]:
+    """
+    Combine two lists of results using Reciprocal Rank Fusion.
+    """
+    scores = {}
+
+    # Helper to update scores
+    def update_scores(results):
+        for rank, result in enumerate(results, start=1):
+            # We use ID as unique identifier
+            doc_id = result.id
+            if doc_id not in scores:
+                scores[doc_id] = {"score": 0.0, "data": result}
+            scores[doc_id]["score"] += 1.0 / (k + rank)
+
+    update_scores(vector_results)
+    update_scores(keyword_results)
+
+    # Sort by score descending
+    sorted_ids = sorted(scores.keys(), key=lambda x: scores[x]["score"], reverse=True)
+    return [scores[doc_id]["data"] for doc_id in sorted_ids]
