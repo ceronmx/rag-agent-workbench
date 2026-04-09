@@ -1,6 +1,6 @@
 import fitz  # PyMuPDF
 from typing import List
-from v2_one.utils.logger import logger
+from rag.utils.logger import logger
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:

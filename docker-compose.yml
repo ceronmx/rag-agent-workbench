@@ -1,11 +1,11 @@
 services:
   db:
     image: pgvector/pgvector:pg17
-    container_name: v2-one-db
+    container_name: rag-db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: v2_one
+      POSTGRES_DB: rag
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:

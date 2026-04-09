@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from v2_one.rag.engine import rescore_results, assemble_rag_prompt
+from rag.rag.engine import rescore_results, assemble_rag_prompt
 from dataclasses import dataclass
 
 
@@ -22,7 +22,7 @@ async def test_rescore_results_basic(mocker):
     ]
 
     # Mock the client.generate method
-    mock_client = mocker.patch("v2_one.rag.engine.client", new_callable=AsyncMock)
+    mock_client = mocker.patch("rag.rag.engine.client", new_callable=AsyncMock)
 
     mock_response = MagicMock()
     mock_response.response = "1, 0"
@@ -48,7 +48,7 @@ async def test_rescore_results_empty():
 async def test_rescore_results_error(mocker):
     results = [MockResult("Apple", "fruits.pdf", 0, 0.9)]
     # Mock an error in the generate request
-    mock_client = mocker.patch("v2_one.rag.engine.client", new_callable=AsyncMock)
+    mock_client = mocker.patch("rag.rag.engine.client", new_callable=AsyncMock)
     mock_client.generate.side_effect = Exception("API Error")
 
     # Should return original results on failure

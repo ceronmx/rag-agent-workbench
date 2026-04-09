@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from v2_one.models.database import Base, Chunk, vector_search, SQLALCHEMY_DATABASE_URL
+from rag.models.database import Base, Chunk, vector_search, SQLALCHEMY_DATABASE_URL
 
 # Create a test engine. We'll use the same URL but ideally it should be a test DB.
 # For this project, we'll connect and use transactions to roll back changes.

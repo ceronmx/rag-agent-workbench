@@ -1,4 +1,4 @@
-from v2_one.models.database import engine
+from rag.models.database import engine
 from sqlalchemy import text
 
 

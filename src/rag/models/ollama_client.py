@@ -2,7 +2,7 @@ import os
 import ollama
 from typing import List
 from dotenv import load_dotenv
-from v2_one.utils.logger import logger
+from rag.utils.logger import logger
 
 load_dotenv()
 

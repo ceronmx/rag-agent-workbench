@@ -1,5 +1,5 @@
 import pytest
-from v2_one.rag.chunker import chunk_text
+from rag.rag.chunker import chunk_text
 
 
 def test_chunk_text_basic():

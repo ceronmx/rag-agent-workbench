@@ -1,5 +1,5 @@
-from v2_one.models.database import engine, Base
-from v2_one.utils.logger import logger
+from rag.models.database import engine, Base
+from rag.utils.logger import logger
 
 
 def wipe_database():

@@ -1,5 +1,5 @@
 [project]
-name = "v2-one"
+name = "rag"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-v2-one = "v2_one.main:main"
+rag = "rag.main:main"
 
 [dependency-groups]
 dev = [

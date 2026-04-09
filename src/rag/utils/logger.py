@@ -8,7 +8,7 @@ load_dotenv()
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 
-def setup_logger(name: str = "v2_one") -> logging.Logger:
+def setup_logger(name: str = "rag") -> logging.Logger:
     """
     Configures and returns a structured logger.
     """

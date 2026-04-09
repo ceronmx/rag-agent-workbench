@@ -10,7 +10,7 @@ from alembic import context
 # Add src to path so we can import our models
 sys.path.insert(0, os.path.join(os.getcwd(), "src"))
 
-from v2_one.models.database import Base, SQLALCHEMY_DATABASE_URL
+from rag.models.database import Base, SQLALCHEMY_DATABASE_URL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,5 +1,5 @@
 import logging
-from v2_one.utils.logger import setup_logger
+from rag.utils.logger import setup_logger
 
 
 def test_logger_setup():

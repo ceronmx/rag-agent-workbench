@@ -3,22 +3,22 @@ import sys
 import os
 import json
 import asyncio
-from v2_one.models.database import engine, Base, SessionLocal, Chunk, vector_search
-from v2_one.models.management import wipe_database
-from v2_one.utils.migrations import run_migrations
-from v2_one.rag.extractor import extract_text_from_pdf
-from v2_one.rag.chunker import chunk_text
-from v2_one.models.ollama_client import (
+from rag.models.database import engine, Base, SessionLocal, Chunk, vector_search
+from rag.models.management import wipe_database
+from rag.utils.migrations import run_migrations
+from rag.rag.extractor import extract_text_from_pdf
+from rag.rag.chunker import chunk_text
+from rag.models.ollama_client import (
     get_embeddings,
     restructure_query,
     generate_answer,
 )
-from v2_one.rag.engine import rescore_results, assemble_rag_prompt
-from v2_one.utils.logger import logger
+from rag.rag.engine import rescore_results, assemble_rag_prompt
+from rag.utils.logger import logger
 
 
 async def async_main():
-    parser = argparse.ArgumentParser(description="v2-one RAG Project")
+    parser = argparse.ArgumentParser(description="rag RAG Project")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
 
     # Ingest command
@@ -128,7 +128,7 @@ async def async_main():
             db.close()
 
     elif args.command == "start":
-        logger.info("Starting v2-one...")
+        logger.info("Starting rag...")
         if args.test_mode:
             wipe_database()
 

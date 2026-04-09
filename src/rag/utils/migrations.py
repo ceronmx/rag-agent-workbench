@@ -1,7 +1,7 @@
 import os
 from alembic.config import Config
 from alembic import command
-from v2_one.utils.logger import logger
+from rag.utils.logger import logger
 
 
 def run_migrations():

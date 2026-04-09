@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from v2_one.models.ollama_client import (
+from rag.models.ollama_client import (
     get_embeddings,
     restructure_query,
     generate_answer,
@@ -11,7 +11,7 @@ from v2_one.models.ollama_client import (
 async def test_get_embeddings(mocker):
     # Mock the client.embed method
     mock_client = mocker.patch(
-        "v2_one.models.ollama_client.client", new_callable=AsyncMock
+        "rag.models.ollama_client.client", new_callable=AsyncMock
     )
 
     # Mock response for client.embed
@@ -30,7 +30,7 @@ async def test_get_embeddings(mocker):
 async def test_get_embeddings_fallback(mocker):
     # Mock the client methods
     mock_client = mocker.patch(
-        "v2_one.models.ollama_client.client", new_callable=AsyncMock
+        "rag.models.ollama_client.client", new_callable=AsyncMock
     )
 
     # client.embed fails
@@ -52,7 +52,7 @@ async def test_get_embeddings_fallback(mocker):
 @pytest.mark.asyncio
 async def test_restructure_query(mocker):
     mock_client = mocker.patch(
-        "v2_one.models.ollama_client.client", new_callable=AsyncMock
+        "rag.models.ollama_client.client", new_callable=AsyncMock
     )
 
     mock_response = MagicMock()
@@ -68,7 +68,7 @@ async def test_restructure_query(mocker):
 @pytest.mark.asyncio
 async def test_generate_answer(mocker):
     mock_client = mocker.patch(
-        "v2_one.models.ollama_client.client", new_callable=AsyncMock
+        "rag.models.ollama_client.client", new_callable=AsyncMock
     )
 
     mock_response = MagicMock()

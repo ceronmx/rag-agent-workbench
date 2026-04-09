@@ -9,7 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-import v2_one.models.database
+import rag.models.database
 
 
 # revision identifiers, used by Alembic.
@@ -29,7 +29,7 @@ def upgrade() -> None:
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("document_name", sa.String(), nullable=True),
         sa.Column("chunk_index", sa.Integer(), nullable=True),
-        sa.Column("embedding", v2_one.models.database.Vector(768), nullable=True),
+        sa.Column("embedding", rag.models.database.Vector(768), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

@@ -1,8 +1,8 @@
 from typing import List, Dict, Any
 import os
 import re
-from v2_one.models.ollama_client import client, LLM_MODEL
-from v2_one.utils.logger import logger
+from rag.models.ollama_client import client, LLM_MODEL
+from rag.utils.logger import logger
 
 
 async def rescore_results(query: str, results: List[Any]) -> List[Any]:
