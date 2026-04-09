@@ -12,9 +12,18 @@ from rag.models.ollama_client import (
     get_embeddings,
     restructure_query,
     generate_answer,
+    LLM_MODEL,
+    EMBEDDING_MODEL,
 )
 from rag.rag.engine import rescore_results, assemble_rag_prompt
 from rag.utils.logger import logger
+from rag.rag.pipeline import run_rag_pipeline
+from rag.utils.reporting import generate_evaluation_report
+from rag.utils.evaluation import (
+    run_comparative_evaluation,
+    calculate_comparative_metrics,
+)
+from rag.utils.datasets import load_golden_set
 
 
 async def async_main():
@@ -55,6 +64,17 @@ async def async_main():
         "clean-cache", help="Clear temporary Python and build artifacts"
     )
 
+    # Evaluate command
+    eval_parser = subparsers.add_parser(
+        "evaluate", help="Run RAGAS evaluation on a golden set"
+    )
+    eval_parser.add_argument(
+        "--dataset",
+        type=str,
+        default="data/eval/golden_set.json",
+        help="Path to the golden set JSON",
+    )
+
     args = parser.parse_args()
 
     if args.command == "ingest":
@@ -89,43 +109,50 @@ async def async_main():
     elif args.command == "query":
         logger.info(f"--- USER QUESTION ---\n{args.question}\n")
 
-        # 1. Restructure
-        logger.info("Restructuring query for vector search...")
-        optimized_q = await restructure_query(args.question)
-        logger.info(f"Optimized Query: {optimized_q}\n")
-
-        # 2. Vector Search
-        logger.info("Searching vector database...")
-        db = SessionLocal()
         try:
-            query_emb_list = await get_embeddings([optimized_q])
-            query_emb = query_emb_list[0]
-            search_results = vector_search(
-                db, query_emb, limit=10
-            )  # Get top 10 for rescoring
+            result = await run_rag_pipeline(
+                args.question,
+                use_restructuring=True,
+                use_rescoring=not args.no_rescore,
+                top_k=args.top_k,
+            )
 
-            if not search_results:
+            logger.info(f"Optimized Query: {result['search_query']}\n")
+            if result["contexts"]:
+                if not args.no_rescore:
+                    logger.info("Rescoring results using LLM...")
+
+                logger.info("\n--- GENERATING ANSWER ---")
+                logger.info(result["answer"])
+            else:
                 logger.info("No relevant context found.")
-                return
-
-            # 3. Rescore
-            final_results = search_results
-            if not args.no_rescore:
-                logger.info("Rescoring results using LLM...")
-                final_results = await rescore_results(optimized_q, search_results)
-
-            # 4. Assemble
-            prompt = assemble_rag_prompt(args.question, final_results, top_k=args.top_k)
-
-            # 5. Generate
-            logger.info("\n--- GENERATING ANSWER ---")
-            answer = await generate_answer(prompt)
-            logger.info(answer)
 
         except Exception as e:
             logger.error(f"Error during query: {e}")
-        finally:
-            db.close()
+
+    elif args.command == "evaluate":
+        logger.info(f"Loading golden set from {args.dataset}...")
+        golden_set = load_golden_set(args.dataset)
+        if not golden_set:
+            logger.error(
+                "No evaluation data found. Use src/rag/utils/datasets.py to create one."
+            )
+            return
+
+        # 1. Run RAG pipeline across configurations
+        results_by_config = await run_comparative_evaluation(golden_set)
+
+        # 2. Calculate Metrics
+        final_metrics = await calculate_comparative_metrics(results_by_config)
+
+        # 3. Generate Report
+        md_report, csv_report = generate_evaluation_report(
+            final_metrics, LLM_MODEL, EMBEDDING_MODEL
+        )
+
+        logger.info(
+            f"Evaluation complete. Reports generated at {md_report} and {csv_report}"
+        )
 
     elif args.command == "start":
         logger.info("Starting rag...")

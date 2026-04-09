@@ -1,0 +1,10 @@
+[
+  {
+    "question": "What is pgvector?",
+    "ground_truth": "pgvector is an open-source extension for PostgreSQL that allows you to store and search vector embeddings in your database. It supports exact and approximate nearest neighbor search, L2 distance, inner product, and cosine distance."
+  },
+  {
+    "question": "What are the benefits of using RAG?",
+    "ground_truth": "Retrieval-Augmented Generation (RAG) improves LLM responses by providing specific, up-to-date context from external documents. It reduces hallucinations, allows for better attribution, and enables the model to answer questions about private or recent data without retraining."
+  }
+]
