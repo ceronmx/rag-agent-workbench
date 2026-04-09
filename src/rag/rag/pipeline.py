@@ -11,6 +11,7 @@ async def run_rag_pipeline(
     use_restructuring: bool = True,
     use_rescoring: bool = True,
     search_mode: str = "vector",
+    filters: Optional[Dict[str, Any]] = None,
     top_k: int = 3,
 ) -> Dict[str, Any]:
     """
@@ -24,7 +25,9 @@ async def run_rag_pipeline(
         search_query = await restructure_query(question)
 
     # 2. Search
-    logger.debug(f"Searching for: {search_query} (Mode: {search_mode})")
+    logger.debug(
+        f"Searching for: {search_query} (Mode: {search_mode}, Filters: {filters})"
+    )
     db = SessionLocal()
     try:
         search_results = []
@@ -32,12 +35,14 @@ async def run_rag_pipeline(
         if search_mode in ["vector", "hybrid"]:
             query_emb_list = await get_embeddings([search_query])
             query_emb = query_emb_list[0]
-            vector_results = vector_search(db, query_emb, limit=10)
+            vector_results = vector_search(db, query_emb, limit=10, filters=filters)
             if search_mode == "vector":
                 search_results = vector_results
 
         if search_mode in ["keyword", "hybrid"]:
-            keyword_results = keyword_search(db, search_query, limit=10)
+            keyword_results = keyword_search(
+                db, search_query, limit=10, filters=filters
+            )
             if search_mode == "keyword":
                 search_results = keyword_results
 

@@ -8,6 +8,7 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) system using Pyt
 -   **Local RAG Stack**: Uses Ollama for embeddings (`nomic-embed-text-v2-moe`) and LLM (`llama3.2`) locally.
 -   **Performance Evaluation**: Integrated **RAGAS** framework to quantitatively measure system performance (Faithfulness, Relevancy, Precision).
 -   **Hybrid Search**: Combines semantic **Vector Search** with traditional **Keyword Search (FTS)** using Reciprocal Rank Fusion (RRF) for better precision.
+-   **Metadata Filtering**: Filter search results by file type or document name to reduce noise and improve accuracy.
 -   **Robust JSON Interceptor**: Custom monkey-patched LLM client that automatically cleans raw responses, stripping markdown noise to ensure reliable evaluation parsing.
 -   **Database Migrations**: Integrated **Alembic** for robust database schema management and automated migrations on startup.
 -   **Structured Logging**: Centralized, configurable logging system replacing informal prints for better observability.
@@ -73,6 +74,15 @@ uv run rag query "What is pgvector?" --search-mode hybrid
 ```
 Available modes: `vector` (default), `keyword`, `hybrid`.
 
+**New:** Support for Metadata filters:
+```bash
+# Search only in PDF files
+uv run rag query "What is pgvector?" --filter-type pdf
+
+# Search within a specific document
+uv run rag query "Annual results" --filter-doc "Q4_Report"
+```
+
 ### 4. Evaluate Performance (RAGAS)
 Measure how well your RAG pipeline is performing across different configurations:
 ```bash
@@ -103,7 +113,7 @@ src/rag/
 │   ├── chunker.py    # Recursive text splitting
 │   └── engine.py     # Rescoring & Prompt assembly
 ├── models/
-│   ├── database.py   # SQLAlchemy & pgvector
+│   ├── database.py   # SQLAlchemy, pgvector & FTS logic
 │   ├── management.py # DB schema utilities
 │   └── ollama_client.py # Async Ollama SDK integration
 └── utils/

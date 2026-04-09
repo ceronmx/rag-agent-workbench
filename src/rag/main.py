@@ -59,6 +59,10 @@ async def async_main():
     query_parser.add_argument(
         "--top-k", type=int, default=3, help="Number of chunks for final prompt"
     )
+    query_parser.add_argument(
+        "--filter-type", type=str, help="Filter by file type (e.g., pdf, docx)"
+    )
+    query_parser.add_argument("--filter-doc", type=str, help="Filter by document name")
 
     # Start command
     start_parser = subparsers.add_parser("start", help="Start the application")
@@ -96,13 +100,21 @@ async def async_main():
         logger.info("Generating embeddings...")
         embeddings = await get_embeddings(chunks_text)
 
-        logger.info("Storing in database...")
+        print("Storing in database...")
         db = SessionLocal()
         try:
             run_migrations()
+            # Extract file type from extension
+            file_type = os.path.splitext(args.pdf_path)[1].lower().replace(".", "")
+
             for i, (txt, emb) in enumerate(zip(chunks_text, embeddings)):
                 chunk = Chunk(
-                    text=txt, document_name=doc_name, chunk_index=i, embedding=emb
+                    text=txt,
+                    document_name=doc_name,
+                    chunk_index=i,
+                    embedding=emb,
+                    file_type=file_type,
+                    metadata_vars={"source_path": args.pdf_path},
                 )
                 db.add(chunk)
             db.commit()
@@ -116,12 +128,20 @@ async def async_main():
     elif args.command == "query":
         logger.info(f"--- USER QUESTION ---\n{args.question}\n")
 
+        # Build filters
+        filters = {}
+        if args.filter_type:
+            filters["file_type"] = args.filter_type
+        if args.filter_doc:
+            filters["document_name"] = args.filter_doc
+
         try:
             result = await run_rag_pipeline(
                 args.question,
                 use_restructuring=True,
                 use_rescoring=not args.no_rescore,
                 search_mode=args.search_mode,
+                filters=filters if filters else None,
                 top_k=args.top_k,
             )
 
