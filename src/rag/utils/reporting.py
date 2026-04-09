@@ -20,11 +20,14 @@ def generate_evaluation_report(
     for name, result in evaluation_results.items():
         row = {"configuration": name}
         try:
-            # Try to get the actual scores
-            row.update(result)
-        except Exception:
+            # result is a Ragas EvaluationResult object
+            # In RAGAS 0.4.x, the result object itself has the mean scores
+            # if we iterate or convert to dict.
+            for metric_name, score in result.items():
+                row[metric_name] = score
+        except Exception as e:
             # If evaluation failed or returned no scores
-            logger.warning(f"No metrics found for {name}")
+            logger.warning(f"Failed to extract metrics for {name}: {e}")
             row.update(
                 {"faithfulness": 0.0, "answer_relevancy": 0.0, "context_precision": 0.0}
             )
@@ -39,10 +42,12 @@ def generate_evaluation_report(
 
     # Generate Markdown
     md_path = os.path.join(report_dir, f"evaluation_{timestamp}.md")
+    eval_model = os.getenv("EVAL_MODEL", "llama3.1:8b")
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(f"# RAG Evaluation Report\n\n")
         f.write(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"**LLM Model:** `{llm_model}`\n")
+        f.write(f"**Application Model:** `{llm_model}`\n")
+        f.write(f"**Judge Model:** `{eval_model}`\n")
         f.write(f"**Embedding Model:** `{embedding_model}`\n\n")
 
         f.write("## Summary Metrics\n\n")

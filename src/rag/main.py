@@ -150,8 +150,9 @@ async def async_main():
             final_metrics, LLM_MODEL, EMBEDDING_MODEL
         )
 
+        eval_model = os.getenv("EVAL_MODEL", "llama3.1:8b")
         logger.info(
-            f"Evaluation complete. Reports generated at {md_report} and {csv_report}"
+            f"Evaluation complete. Reports generated at {md_report} and {csv_report} (Judge: {eval_model})"
         )
 
     elif args.command == "start":
