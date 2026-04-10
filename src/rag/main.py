@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from rag.api.query import router as query_router
 from rag.utils.logger import logger
 import time
 
@@ -17,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+# Routes
+app.include_router(query_router)
 
 
 @app.middleware("http")
