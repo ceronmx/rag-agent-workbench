@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import List, Dict, Any, Optional, Union, AsyncGenerator
 from rag.models.database import SessionLocal, vector_search, keyword_search
 from rag.models.ollama_client import get_embeddings, restructure_query, generate_answer
@@ -91,5 +92,8 @@ async def run_rag_pipeline(
             "search_mode": search_mode,
             "is_stream": stream,
         }
+    except Exception as e:
+        logger.error(f"PIPELINE ERROR: {e}\n{traceback.format_exc()}")
+        raise e
     finally:
         db.close()

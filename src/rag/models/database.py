@@ -112,14 +112,21 @@ def vector_search(
     """
     emb_str = f"[{','.join(map(str, query_embedding))}]"
     filter_clause, params = _build_filter_clause(filters)
-    params["limit"] = limit
 
+    # Ensure params is a dictionary even if filters was None
+    if params is None:
+        params = {}
+
+    params["limit"] = limit
+    params["emb"] = emb_str
+
+    # Using CAST instead of :: to avoid syntax confusion with parameter markers
     query = sa_text(
         f"""
-        SELECT id, text, document_name, chunk_index, file_type, 1 - (embedding <=> '{emb_str}') as similarity
+        SELECT id, text, document_name, chunk_index, file_type, 1 - (embedding <=> CAST(:emb AS vector)) as similarity
         FROM chunks
         {filter_clause}
-        ORDER BY embedding <=> '{emb_str}'
+        ORDER BY embedding <=> CAST(:emb AS vector)
         LIMIT :limit
     """
     )
