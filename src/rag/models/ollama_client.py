@@ -58,22 +58,42 @@ async def restructure_query(user_query: str) -> str:
     """
     Use LLM to restructure the user query for better vector search (Async).
     """
-    prompt = f"""
-    You are an expert at optimizing search queries for a vector database.
-    Transform the following user question into a concise, descriptive search query that captures the core semantic meaning.
-    Focus on key terms and concepts.
-    
-    User question: {user_query}
-    
-    Optimized search query:"""
-
-    response = await client.generate(
-        model=LLM_MODEL,
-        prompt=prompt,
-        stream=False,
-        options={"temperature": 0.0},
+    system_prompt = (
+        "You are an expert at optimizing search queries for a vector database. "
+        "Your task is to transform user questions into a concise, descriptive search query. "
+        "IMPORTANT: You MUST return ONLY the optimized search query string. "
+        "Do NOT include any explanations, reasoning, prefix, or suffix. "
+        "Example 1:\nUser: What is the capital of France?\nQuery: capital of France\n"
+        "Example 2:\nUser: How does pgvector handle indexing?\nQuery: pgvector indexing mechanisms\n"
+        "Example 3:\nUser: Tell me about FastAPI performance compared to Flask\nQuery: FastAPI vs Flask performance"
     )
-    return response.response.strip()
+
+    try:
+        response = await client.chat(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"User: {user_query}"},
+            ],
+            options={"temperature": 0.0},
+        )
+        content = response["message"]["content"].strip()
+        # Clean up any common prefixes the LLM might still add
+        if "Query:" in content:
+            content = content.split("Query:")[-1].strip()
+
+        # Take only the first line and strip common artifacts
+        content = content.split("\n")[0].strip("\"' ")
+
+        # If the LLM still prefix with something like "Optimized query:"
+        for prefix in ["optimized search query:", "optimized query:", "search query:"]:
+            if content.lower().startswith(prefix):
+                content = content[len(prefix) :].strip()
+
+        return content
+    except Exception as e:
+        logger.error(f"Error restructuring query: {e}. Returning original.")
+        return user_query
 
 
 async def generate_answer(

@@ -55,14 +55,13 @@ async def test_restructure_query(mocker):
         "rag.models.ollama_client.client", new_callable=AsyncMock
     )
 
-    mock_response = MagicMock()
-    mock_response.response = "Optimized Query"
-    mock_client.generate.return_value = mock_response
+    mock_response = {"message": {"content": "Optimized Query"}}
+    mock_client.chat.return_value = mock_response
 
     result = await restructure_query("What is RAG?")
 
     assert result == "Optimized Query"
-    mock_client.generate.assert_called_once()
+    mock_client.chat.assert_called_once()
 
 
 @pytest.mark.asyncio
