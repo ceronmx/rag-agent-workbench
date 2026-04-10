@@ -34,3 +34,12 @@ class DocumentInfo(BaseModel):
     document_name: str
     chunk_count: int
     file_type: str
+
+class EvaluationRequest(BaseModel):
+    dataset_path: str = Field("data/eval/golden_set.json", description="Path to the evaluation dataset")
+
+class EvaluationResponse(BaseModel):
+    status: str
+    md_report: str
+    csv_report: str
+    metrics: Dict[str, Any]

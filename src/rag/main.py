@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from rag.api.query import router as query_router
 from rag.api.ingestion import router as ingestion_router
 from rag.api.documents import router as documents_router
+from rag.api.evaluation import router as evaluation_router
 from rag.utils.logger import logger
 import time
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(query_router)
 app.include_router(ingestion_router)
 app.include_router(documents_router)
+app.include_router(evaluation_router)
 
 @app.middleware("http")
 async def log_requests(request, call_next):
