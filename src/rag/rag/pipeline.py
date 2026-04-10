@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, AsyncGenerator
 from rag.models.database import SessionLocal, vector_search, keyword_search
 from rag.models.ollama_client import get_embeddings, restructure_query, generate_answer
 from rag.rag.engine import rescore_results, assemble_rag_prompt, reciprocal_rank_fusion
@@ -13,10 +13,11 @@ async def run_rag_pipeline(
     search_mode: str = "vector",
     filters: Optional[Dict[str, Any]] = None,
     top_k: int = 3,
+    stream: bool = False,
 ) -> Dict[str, Any]:
     """
     Execute the RAG pipeline with configurable steps.
-    Returns a dictionary with the answer and intermediate results (for evaluation).
+    Returns a dictionary with the answer (or stream) and intermediate results.
     """
     # 1. Restructure (Optional)
     search_query = question
@@ -65,7 +66,9 @@ async def run_rag_pipeline(
 
         # 4. Assemble & Generate
         prompt = assemble_rag_prompt(question, final_results, top_k=top_k)
-        answer = await generate_answer(prompt)
+
+        # answer will be a string OR an AsyncGenerator
+        answer = await generate_answer(prompt, stream=stream)
 
         # Format contexts for RAGAS (list of strings)
         contexts = [r.text for r in final_results[:top_k]]
@@ -77,6 +80,7 @@ async def run_rag_pipeline(
             "used_restructuring": use_restructuring,
             "used_rescoring": use_rescoring,
             "search_mode": search_mode,
+            "is_stream": stream,
         }
     finally:
         db.close()

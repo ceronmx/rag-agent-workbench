@@ -6,7 +6,11 @@ import asyncio
 from rag.models.database import engine, Base, SessionLocal, Chunk, vector_search
 from rag.models.management import wipe_database
 from rag.utils.migrations import run_migrations
-from rag.rag.extractor import extract_text_from_pdf
+from rag.rag.extractor import (
+    extract_text_from_pdf,
+    extract_text_from_docx,
+    extract_text_from_txt,
+)
 from rag.rag.chunker import chunk_text
 from rag.models.ollama_client import (
     get_embeddings,
@@ -31,8 +35,10 @@ async def async_main():
     subparsers = parser.add_subparsers(dest="command", help="Commands")
 
     # Ingest command
-    ingest_parser = subparsers.add_parser("ingest", help="Ingest a PDF file")
-    ingest_parser.add_argument("pdf_path", type=str, help="Path to the PDF file")
+    ingest_parser = subparsers.add_parser("ingest", help="Ingest a document file")
+    ingest_parser.add_argument(
+        "pdf_path", type=str, help="Path to the document file (PDF, DOCX, TXT, MD)"
+    )
     ingest_parser.add_argument(
         "--chunk-size", type=int, default=1000, help="Size of each chunk"
     )
@@ -48,6 +54,9 @@ async def async_main():
     query_parser.add_argument("question", type=str, help="Your question")
     query_parser.add_argument(
         "--no-rescore", action="store_true", help="Disable LLM rescoring"
+    )
+    query_parser.add_argument(
+        "--no-stream", action="store_true", help="Disable real-time answer streaming"
     )
     query_parser.add_argument(
         "--search-mode",
@@ -90,8 +99,18 @@ async def async_main():
 
     if args.command == "ingest":
         doc_name = args.document_name or os.path.basename(args.pdf_path)
-        logger.info(f"Ingesting {args.pdf_path} as '{doc_name}'...")
-        text = extract_text_from_pdf(args.pdf_path)
+        ext = os.path.splitext(args.pdf_path)[1].lower()
+
+        logger.info(f"Ingesting {args.pdf_path} (Type: {ext}) as '{doc_name}'...")
+
+        if ext == ".pdf":
+            text = extract_text_from_pdf(args.pdf_path)
+        elif ext == ".docx":
+            text = extract_text_from_docx(args.pdf_path)
+        else:
+            # Default to text extraction for .txt, .md, etc.
+            text = extract_text_from_txt(args.pdf_path)
+
         chunks_text = chunk_text(text, chunk_size=args.chunk_size, overlap=args.overlap)
         logger.info(
             f"Extracted {len(text)} characters. Created {len(chunks_text)} chunks."
@@ -100,12 +119,12 @@ async def async_main():
         logger.info("Generating embeddings...")
         embeddings = await get_embeddings(chunks_text)
 
-        print("Storing in database...")
+        logger.info("Storing in database...")
         db = SessionLocal()
         try:
             run_migrations()
             # Extract file type from extension
-            file_type = os.path.splitext(args.pdf_path)[1].lower().replace(".", "")
+            file_type = ext.replace(".", "")
 
             for i, (txt, emb) in enumerate(zip(chunks_text, embeddings)):
                 chunk = Chunk(
@@ -143,6 +162,7 @@ async def async_main():
                 search_mode=args.search_mode,
                 filters=filters if filters else None,
                 top_k=args.top_k,
+                stream=not args.no_stream,
             )
 
             logger.info(f"Search Mode: {result['search_mode']}")
@@ -152,7 +172,18 @@ async def async_main():
                     logger.info("Rescoring results using LLM...")
 
                 logger.info("\n--- GENERATING ANSWER ---")
-                logger.info(result["answer"])
+
+                if result.get("is_stream"):
+                    # Iterate over the async generator
+                    async for chunk in result["answer"]:
+                        # logger.debug(f"CHUNK: {chunk}")
+                        if "message" in chunk:
+                            print(chunk["message"]["content"], end="", flush=True)
+                        elif "response" in chunk:
+                            print(chunk["response"], end="", flush=True)
+                    print("\n")  # Final newline
+                else:
+                    logger.info(result["answer"])
             else:
                 logger.info("No relevant context found.")
 

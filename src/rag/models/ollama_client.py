@@ -1,6 +1,6 @@
 import os
 import ollama
-from typing import List
+from typing import List, Union, AsyncGenerator
 from dotenv import load_dotenv
 from rag.utils.logger import logger
 
@@ -76,9 +76,12 @@ async def restructure_query(user_query: str) -> str:
     return response.response.strip()
 
 
-async def generate_answer(prompt: str, stream: bool = False):
+async def generate_answer(
+    prompt: str, stream: bool = False
+) -> Union[str, AsyncGenerator]:
     """
     Call Ollama generate for final answer (Async).
+    Returns a string if stream=False, or an AsyncGenerator if stream=True.
     """
     if stream:
         return await client.generate(model=LLM_MODEL, prompt=prompt, stream=True)
