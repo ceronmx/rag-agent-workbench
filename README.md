@@ -4,7 +4,9 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) system using Pyt
 
 ## 🚀 Key Features
 
--   **Asynchronous Core**: Fully non-blocking I/O using `AsyncOllamaClient` and `asyncio` for improved concurrency and responsiveness.
+-   **FastAPI Web Interface**: Modern, asynchronous REST API for document ingestion, querying, and system health monitoring.
+-   **Service Layer Architecture**: Clean separation between API/CLI controllers and business logic for better maintainability.
+-   **Asynchronous Core**: Fully non-blocking I/O using `FastAPI`, `AsyncOllamaClient`, and `asyncio` for improved concurrency and responsiveness.
 -   **Local RAG Stack**: Uses Ollama for embeddings (`nomic-embed-text-v2-moe`) and LLM (`llama3.2`) locally.
 -   **Performance Evaluation**: Integrated **RAGAS** framework to quantitatively measure system performance (Faithfulness, Relevancy, Precision).
 -   **Hybrid Search**: Combines semantic **Vector Search** with traditional **Keyword Search (FTS)** using Reciprocal Rank Fusion (RRF) for better precision.
@@ -50,20 +52,27 @@ uv sync
 
 ## 🏃 Usage
 
-### 1. Start / Verify System
-Initialize the database and verify connectivity:
+### 1. Start the API Server
+Run the FastAPI application locally:
+```bash
+uv run uvicorn rag.main:app --reload
+```
+The API is now available at `http://127.0.0.1:8000`. You can explore the interactive **Swagger docs** at `http://127.0.0.1:8000/docs`.
+
+### 2. Start / Verify CLI System
+Initialize the database and verify connectivity via CLI:
 ```bash
 uv run rag start
 ```
 
-### 2. Ingest Documents
-Process a PDF file, chunk it, and store embeddings in the database:
+### 3. Ingest Documents
+Via CLI:
 ```bash
 uv run rag ingest /path/to/document.pdf --document-name "MyDoc"
 ```
 
-### 3. Query the System
-Ask questions based on the ingested documents:
+### 4. Query the System
+Via CLI:
 ```bash
 uv run rag query "What are the key findings in the document?"
 ```
@@ -106,23 +115,26 @@ uv run rag clean-cache
 
 ```text
 src/rag/
-├── main.py           # CLI entry point (Async)
-├── rag/
-│   ├── pipeline.py   # Reusable RAG pipeline logic
-│   ├── extractor.py  # PDF text extraction
+├── main.py           # FastAPI Application entry point
+├── cli.py            # CLI entry point (rag command)
+├── api/              # API Route controllers
+├── services/         # Business logic & Service layer
+├── rag/              # Core RAG pipeline logic
+│   ├── pipeline.py   # Integrated workflow
+│   ├── extractor.py  # PDF/Docx text extraction
 │   ├── chunker.py    # Recursive text splitting
 │   └── engine.py     # Rescoring & Prompt assembly
 ├── models/
-│   ├── database.py   # SQLAlchemy, pgvector & FTS logic
-│   ├── management.py # DB schema utilities
-│   └── ollama_client.py # Async Ollama SDK integration
+│   ├── database.py   # SQLAlchemy, pgvector & FTS models
+│   ├── management.py # DB schema management
+│   └── ollama_client.py # Async Ollama integration
 └── utils/
-    ├── evaluation.py # RAGAS metric initialization & Robust Interceptor
+    ├── evaluation.py # RAGAS metric logic
     ├── reporting.py  # Markdown/CSV report generators
     ├── datasets.py   # Golden set management
-    ├── llm_robustness.py # JSON cleaning logic
-    ├── logger.py     # Centralized logging configuration
-    └── migrations.py # Alembic programmatic runner
+    ├── llm_robustness.py # JSON cleanup
+    ├── logger.py     # Logging setup
+    └── migrations.py # Alembic runner
 ```
 
 ## 🧪 Testing
