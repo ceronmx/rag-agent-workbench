@@ -29,3 +29,8 @@ class TextIngestRequest(BaseModel):
     chunk_size: int = Field(1000, description="Size of each chunk")
     overlap: int = Field(200, description="Overlap between chunks")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+
+class DocumentInfo(BaseModel):
+    document_name: str
+    chunk_count: int
+    file_type: str
