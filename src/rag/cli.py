@@ -101,49 +101,20 @@ async def async_main():
         return
 
     if args.command == "ingest":
-        doc_name = args.document_name or os.path.basename(args.pdf_path)
-        ext = os.path.splitext(args.pdf_path)[1].lower()
-
-        logger.info(f"Ingesting {args.pdf_path} (Type: {ext}) as '{doc_name}'...")
-
-        if ext == ".pdf":
-            text = extract_text_from_pdf(args.pdf_path)
-        elif ext == ".docx":
-            text = extract_text_from_docx(args.pdf_path)
-        else:
-            # Default to text extraction for .txt, .md, etc.
-            text = extract_text_from_txt(args.pdf_path)
-
-        chunks_text = chunk_text(text, chunk_size=args.chunk_size, overlap=args.overlap)
-        logger.info(
-            f"Extracted {len(text)} characters. Created {len(chunks_text)} chunks."
-        )
-
-        logger.info("Generating embeddings...")
-        embeddings = await get_embeddings(chunks_text)
-
-        logger.info("Storing in database...")
         db = SessionLocal()
         try:
-            run_migrations()
-            # Extract file type from extension
-            file_type = ext.replace(".", "")
+            from rag.services.ingestion import IngestionService
 
-            for i, (txt, emb) in enumerate(zip(chunks_text, embeddings)):
-                chunk = Chunk(
-                    text=txt,
-                    document_name=doc_name,
-                    chunk_index=i,
-                    embedding=emb,
-                    file_type=file_type,
-                    metadata_vars={"source_path": args.pdf_path},
-                )
-                db.add(chunk)
-            db.commit()
-            logger.info(f"Successfully ingested {len(chunks_text)} chunks.")
+            service = IngestionService(db)
+
+            await service.ingest_file(
+                file_path=args.pdf_path,
+                chunk_size=args.chunk_size,
+                overlap=args.overlap,
+                document_name=args.document_name,
+            )
         except Exception as e:
-            logger.error(f"Error storing chunks: {e}")
-            db.rollback()
+            logger.error(f"Ingestion failed: {e}")
         finally:
             db.close()
 
