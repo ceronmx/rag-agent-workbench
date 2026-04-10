@@ -204,7 +204,8 @@ async def calculate_comparative_metrics(
 
         questions = [r["question"] for r in mode_results]
         answers = [r["answer"] for r in mode_results]
-        contexts = [r["contexts"] for r in mode_results]
+        # Extract only the text from context objects for RAGAS
+        contexts = [[c["text"] for c in r["contexts"]] for r in mode_results]
         ground_truths = [r["ground_truth"] for r in mode_results]
 
         # Run evaluation for this mode

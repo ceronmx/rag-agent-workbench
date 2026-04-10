@@ -116,7 +116,7 @@ def vector_search(
 
     query = sa_text(
         f"""
-        SELECT id, text, document_name, chunk_index, 1 - (embedding <=> '{emb_str}') as similarity
+        SELECT id, text, document_name, chunk_index, file_type, 1 - (embedding <=> '{emb_str}') as similarity
         FROM chunks
         {filter_clause}
         ORDER BY embedding <=> '{emb_str}'
@@ -141,7 +141,7 @@ def keyword_search(db, query_text, limit=5, filters: Optional[Dict[str, Any]] = 
     # Let's adjust logic.
 
     sql = """
-        SELECT id, text, document_name, chunk_index, ts_rank(to_tsvector('english', text), websearch_to_tsquery('english', :query)) as similarity
+        SELECT id, text, document_name, chunk_index, file_type, ts_rank(to_tsvector('english', text), websearch_to_tsquery('english', :query)) as similarity
         FROM chunks
         WHERE to_tsvector('english', text) @@ websearch_to_tsquery('english', :query)
     """

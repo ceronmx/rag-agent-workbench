@@ -70,8 +70,17 @@ async def run_rag_pipeline(
         # answer will be a string OR an AsyncGenerator
         answer = await generate_answer(prompt, stream=stream)
 
-        # Format contexts for RAGAS (list of strings)
-        contexts = [r.text for r in final_results[:top_k]]
+        # Format contexts (list of dicts with metadata)
+        contexts = [
+            {
+                "text": r.text,
+                "document_name": r.document_name,
+                "chunk_index": r.chunk_index,
+                "score": getattr(r, "similarity", None),
+                "file_type": getattr(r, "file_type", None),
+            }
+            for r in final_results[:top_k]
+        ]
 
         return {
             "answer": answer,
