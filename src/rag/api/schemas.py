@@ -22,3 +22,10 @@ class QueryResponse(BaseModel):
     search_mode: str
     contexts: List[ContextChunk]
     is_stream: bool = False
+
+class TextIngestRequest(BaseModel):
+    text: str = Field(..., description="Raw text to ingest")
+    document_name: str = Field(..., description="Name for the ingested document")
+    chunk_size: int = Field(1000, description="Size of each chunk")
+    overlap: int = Field(200, description="Overlap between chunks")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")

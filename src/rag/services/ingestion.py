@@ -1,5 +1,6 @@
 import os
 from sqlalchemy.orm import Session
+from typing import Optional
 from rag.models.database import Chunk
 from rag.models.ollama_client import get_embeddings
 from rag.rag.extractor import (
@@ -58,6 +59,35 @@ class IngestionService:
                 self.db.add(chunk)
             self.db.commit()
             logger.info(f"Successfully ingested {len(chunks_text)} chunks.")
+            return {"status": "success", "chunks_ingested": len(chunks_text)}
+        except Exception as e:
+            logger.error(f"Error storing chunks: {e}")
+            self.db.rollback()
+            raise e
+
+    async def ingest_text(self, text: str, document_name: str, chunk_size: int = 1000, overlap: int = 200, metadata: Optional[dict] = None):
+        logger.info(f"Ingesting raw text as '{document_name}'...")
+
+        chunks_text = chunk_text(text, chunk_size=chunk_size, overlap=overlap)
+        logger.info(f"Created {len(chunks_text)} chunks from raw text.")
+
+        logger.info("Generating embeddings...")
+        embeddings = await get_embeddings(chunks_text)
+
+        logger.info("Storing in database...")
+        try:
+            for i, (txt, emb) in enumerate(zip(chunks_text, embeddings)):
+                chunk = Chunk(
+                    text=txt,
+                    document_name=document_name,
+                    chunk_index=i,
+                    embedding=emb,
+                    file_type="text",
+                    metadata_vars=metadata or {},
+                )
+                self.db.add(chunk)
+            self.db.commit()
+            logger.info(f"Successfully ingested {len(chunks_text)} chunks from text.")
             return {"status": "success", "chunks_ingested": len(chunks_text)}
         except Exception as e:
             logger.error(f"Error storing chunks: {e}")
