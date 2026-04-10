@@ -57,7 +57,19 @@ Run the FastAPI application locally:
 ```bash
 uv run uvicorn rag.main:app --reload
 ```
-The API is now available at `http://127.0.0.1:8000`. You can explore the interactive **Swagger docs** at `http://127.0.0.1:8000/docs`.
+The API is now available at `http://127.0.0.1:8000`. 
+
+**Key Endpoints:**
+- `GET /health`: System health check.
+- `POST /query/`: Synchronous RAG query.
+- `POST /query/stream`: Real-time streaming RAG query (SSE).
+- `POST /ingest/file`: Upload and index documents (Multipart).
+- `POST /ingest/text`: Index raw text strings (JSON).
+- `GET /documents/`: List all ingested documents.
+- `DELETE /documents/{name}`: Remove a document and its embeddings.
+- `POST /evaluate/`: Run RAGAS benchmark evaluation.
+
+You can explore the interactive **Swagger docs** with full schema details and examples at `http://127.0.0.1:8000/docs`.
 
 ### 2. Start / Verify CLI System
 Initialize the database and verify connectivity via CLI:
