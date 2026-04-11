@@ -4,7 +4,7 @@
   "backups": {
     "backup_export": {
       "name": "backup_export",
-      "url": "file:///Users/dpc/Documents/rag/v2_one/.beads/backup",
+      "url": "file:///Users/dpc/Documents/RAG/v2_one/.beads/backup",
       "fetch_specs": [
         "refs/heads/*:refs/remotes/backup_export/*"
       ],
