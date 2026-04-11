@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { describe, expect, it, vi } from 'vitest';
+import { type Mock, describe, expect, it, vi } from 'vitest';
 import { ragQueryHandler } from './index.js';
 
 // Mock axios
@@ -24,7 +24,7 @@ describe('MCP Bridge - rag_query tool', () => {
       },
     };
 
-    mockedAxios.post.mockResolvedValue(mockApiResponse);
+    (mockedAxios.post as Mock).mockResolvedValue(mockApiResponse);
 
     const result = await ragQueryHandler({
       question: 'What is FastAPI?',
@@ -45,7 +45,7 @@ describe('MCP Bridge - rag_query tool', () => {
   });
 
   it('should handle errors from RAG API gracefully', async () => {
-    mockedAxios.post.mockRejectedValue({
+    (mockedAxios.post as Mock).mockRejectedValue({
       isAxiosError: true,
       response: {
         data: {
@@ -55,7 +55,7 @@ describe('MCP Bridge - rag_query tool', () => {
     });
 
     // We need to ensure axios.isAxiosError returns true for this mock
-    mockedAxios.isAxiosError.mockReturnValue(true);
+    (mockedAxios.isAxiosError as Mock).mockReturnValue(true);
 
     const result = await ragQueryHandler({
       question: 'Error test',
