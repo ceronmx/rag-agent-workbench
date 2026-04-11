@@ -24,7 +24,7 @@ export async function ragQueryHandler({
   top_k?: number;
 }) {
   try {
-    const response = await axios.post(`${RAG_API_BASE_URL}/query/`, {
+    const response = await axios.post(`${RAG_API_BASE_URL}/query`, {
       question,
       search_mode: search_mode || 'vector',
       top_k: top_k || 3,
@@ -39,9 +39,11 @@ export async function ragQueryHandler({
     resultText += `Search Mode: ${data.search_mode}\n\n`;
     resultText += 'Contexts used:\n';
 
-    for (const context of data.contexts) {
-      resultText += `--- Document: ${context.document_name} (Chunk ${context.chunk_index}) ---\n`;
-      resultText += `${context.text}\n\n`;
+    if (Array.isArray(data.contexts)){
+      for (const context of data.contexts) {
+        resultText += `--- Document: ${context.document_name} (Chunk ${context.chunk_index}) ---\n`;
+        resultText += `${context.text}\n\n`;
+      }
     }
 
     return {
