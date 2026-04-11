@@ -1,25 +1,32 @@
 import { useRef } from "react"
 import { Plus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useDocuments } from "@/hooks/useDocuments"
+import { toast } from "sonner"
 
-interface DocumentUploadProps {
-  onUpload: (file: File) => void
-  isUploading: boolean
-}
-
-export function DocumentUpload({ onUpload, isUploading }: DocumentUploadProps) {
+export function DocumentUpload() {
+  const { uploadMutation } = useDocuments()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleButtonClick = () => {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      onUpload(file)
-      // Reset input so the same file can be selected again
-      e.target.value = ""
+      try {
+        const promise = uploadMutation.mutateAsync({ file })
+        toast.promise(promise, {
+          loading: `Uploading ${file.name}...`,
+          success: `${file.name} ingested successfully`,
+          error: (err) => `Upload failed: ${err.message || 'Unknown error'}`
+        })
+        await promise
+        e.target.value = ''
+      } catch (err) {
+        // Handled by toast.promise
+      }
     }
   }
 
@@ -34,11 +41,11 @@ export function DocumentUpload({ onUpload, isUploading }: DocumentUploadProps) {
       />
       <Button 
         onClick={handleButtonClick}
-        disabled={isUploading}
+        disabled={uploadMutation.isPending}
         className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 font-bold h-12 px-6 rounded-xl shadow-lg shadow-primary/20 hidden lg:flex"
       >
-        {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
-        {isUploading ? "UPLOADING..." : "UPLOAD NEW"}
+        {uploadMutation.isPending ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
+        {uploadMutation.isPending ? "UPLOADING..." : "UPLOAD NEW"}
       </Button>
     </>
   )

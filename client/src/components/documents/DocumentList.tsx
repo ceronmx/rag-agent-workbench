@@ -1,9 +1,9 @@
+import { useMemo } from "react"
 import { 
   Download, 
   FileText,
   Trash2,
-  Loader2,
-  MoreVertical
+  Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,26 +16,42 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DocumentInfo } from "@/types/api"
-import { cn } from "@/lib/utils"
+import { useDocuments } from "@/hooks/useDocuments"
+import { toast } from "sonner"
 
 interface DocumentListProps {
-  documents: DocumentInfo[]
-  isLoading: boolean
-  onDelete: (name: string) => void
-  isDeleting: boolean
-  deletingName?: string
   searchQuery: string
 }
 
-export function DocumentList({ 
-  documents, 
-  isLoading, 
-  onDelete, 
-  isDeleting, 
-  deletingName,
-  searchQuery 
-}: DocumentListProps) {
+export function DocumentList({ searchQuery }: DocumentListProps) {
+  const { 
+    documents, 
+    isLoading, 
+    deleteMutation 
+  } = useDocuments()
+
+  const filteredDocuments = useMemo(() => {
+    return documents.filter(doc => 
+      doc.document_name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [documents, searchQuery])
+
+  const handleDelete = async (name: string) => {
+    if (confirm(`Are you sure you want to delete ${name}?`)) {
+      try {
+        const promise = deleteMutation.mutateAsync(name)
+        toast.promise(promise, {
+          loading: `Deleting ${name}...`,
+          success: `${name} deleted successfully`,
+          error: (err) => `Delete failed: ${err.message || 'Unknown error'}`
+        })
+        await promise
+      } catch (err) {
+        // Handled by toast.promise
+      }
+    }
+  }
+
   if (isLoading) {
     return (
       <Card className="border-none bg-surface-container-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex items-center justify-center">
@@ -44,7 +60,7 @@ export function DocumentList({
     )
   }
 
-  if (documents.length === 0) {
+  if (filteredDocuments.length === 0) {
     return (
       <Card className="border-none bg-surface-container-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex flex-col items-center justify-center text-muted-foreground space-y-2">
         <FileText size={40} className="opacity-20" />
@@ -69,7 +85,7 @@ export function DocumentList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {documents.map((file) => (
+            {filteredDocuments.map((file) => (
               <TableRow key={file.document_name} className="border-border hover:bg-surface-container/30 transition-colors h-24">
                 <TableCell className="font-semibold py-4 pl-8">
                   <div className="flex items-center gap-4">
@@ -96,10 +112,10 @@ export function DocumentList({
                       variant="ghost" 
                       size="icon" 
                       className="text-muted-foreground hover:text-destructive h-10 w-10 transition-colors"
-                      onClick={() => onDelete(file.document_name)}
-                      disabled={isDeleting}
+                      onClick={() => handleDelete(file.document_name)}
+                      disabled={deleteMutation.isPending}
                     >
-                      {isDeleting && deletingName === file.document_name 
+                      {deleteMutation.isPending && deleteMutation.variables === file.document_name 
                         ? <Loader2 className="animate-spin" size={18} />
                         : <Trash2 size={18} />
                       }
@@ -114,7 +130,7 @@ export function DocumentList({
 
       {/* Mobile View (List) */}
       <div className="lg:hidden space-y-3">
-        {documents.map((file) => (
+        {filteredDocuments.map((file) => (
           <Card key={file.document_name} className="p-4 bg-surface-container-low border-none flex items-center justify-between rounded-xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-on-surface border border-border/30">
@@ -133,10 +149,10 @@ export function DocumentList({
                 variant="ghost" 
                 size="icon" 
                 className="bg-surface-container-highest/50 h-10 w-10 rounded-xl"
-                onClick={() => onDelete(file.document_name)}
-                disabled={isDeleting}
+                onClick={() => handleDelete(file.document_name)}
+                disabled={deleteMutation.isPending}
               >
-                {isDeleting && deletingName === file.document_name 
+                {deleteMutation.isPending && deleteMutation.variables === file.document_name 
                   ? <Loader2 className="animate-spin" size={18} />
                   : <Trash2 size={18} className="text-muted-foreground" />
                 }

@@ -3,16 +3,27 @@ import { Sidebar } from "./Sidebar"
 import { MobileNav } from "./MobileNav"
 import { Header } from "./Header"
 import { QueryBar } from "../chat/QueryBar"
+import { useRAGQuery } from "@/hooks/useRAGQuery"
+import { toast } from "sonner"
 
 interface LayoutProps {
   children: React.ReactNode
-  onQuery?: (question: string) => void
-  isQueryLoading?: boolean
   searchQuery?: string
   onSearchChange?: (value: string) => void
 }
 
-export function Layout({ children, onQuery, isQueryLoading, searchQuery, onSearchChange }: LayoutProps) {
+export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
+  const { queryMutation, isLoading: isQueryLoading } = useRAGQuery()
+
+  const handleQuery = async (question: string) => {
+    try {
+      await queryMutation.mutateAsync({ question })
+      toast.success("Query successful")
+    } catch (err) {
+      toast.error(`Query failed: ${(err as any).message || 'Unknown error'}`)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans overflow-hidden">
       {/* Sidebar - Desktop */}
@@ -31,10 +42,7 @@ export function Layout({ children, onQuery, isQueryLoading, searchQuery, onSearc
         {/* Floating Query Bar - Fixed at bottom of main content */}
         <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-8 pointer-events-none z-20">
           <div className="max-w-4xl mx-auto pointer-events-auto">
-            <div className="lg:hidden mb-4">
-              {/* Mobile version of query bar can be simpler if needed */}
-            </div>
-            {onQuery && <QueryBar onQuery={onQuery} isLoading={isQueryLoading} />}
+            <QueryBar onQuery={handleQuery} isLoading={isQueryLoading} />
           </div>
         </div>
 

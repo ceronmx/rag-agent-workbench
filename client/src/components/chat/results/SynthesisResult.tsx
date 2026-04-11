@@ -1,31 +1,25 @@
 import { 
-  Sparkles, 
   Loader2, 
   AlertCircle 
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { QueryResponse } from "@/types/api"
+import { useRAGQuery } from "@/hooks/useRAGQuery"
+import { useDocuments } from "@/hooks/useDocuments"
 import { cn } from "@/lib/utils"
 
-interface SynthesisResultProps {
-  lastResult: QueryResponse | null
-  isLoading: boolean
-  isError: boolean
-  error: any
-  onClear: () => void
-  isUploading: boolean
-}
+export function SynthesisResult() {
+  const { 
+    lastResult, 
+    isLoading, 
+    isError, 
+    error, 
+    clearResult 
+  } = useRAGQuery()
+  
+  const { uploadMutation } = useDocuments()
 
-export function SynthesisResult({ 
-  lastResult, 
-  isLoading, 
-  isError, 
-  error, 
-  onClear, 
-  isUploading 
-}: SynthesisResultProps) {
   return (
     <div className="space-y-6 mb-10">
       <div className="space-y-2">
@@ -51,7 +45,7 @@ export function SynthesisResult({
         ) : isError ? (
           <div className="flex items-center gap-3 text-error">
             <AlertCircle size={20} />
-            <p className="text-sm font-medium">Query Error: {error?.message || "Failed to get response"}</p>
+            <p className="text-sm font-medium">Query Error: {(error as any)?.message || "Failed to get response"}</p>
           </div>
         ) : lastResult ? (
           <div className="space-y-4">
@@ -70,7 +64,7 @@ export function SynthesisResult({
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={onClear}
+                onClick={clearResult}
                 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground h-auto p-0"
               >
                 Clear Result
@@ -80,17 +74,17 @@ export function SynthesisResult({
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-on-surface-variant leading-relaxed font-medium">
-              {isUploading 
+              {uploadMutation.isPending 
                 ? "Ingesting your document into the vector space..." 
                 : "Welcome to Cognitive Monolith. Start by uploading documents or asking a question below."}
             </p>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none">
-                {isUploading ? "UPLOADING" : "SYSTEM READY"}
+                {uploadMutation.isPending ? "UPLOADING" : "SYSTEM READY"}
               </Badge>
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                isUploading ? "bg-tertiary animate-bounce shadow-[0_0_8px_rgba(255,183,131,0.5)]" : "bg-primary animate-pulse shadow-[0_0_8px_rgba(192,193,255,0.5)]"
+                uploadMutation.isPending ? "bg-tertiary animate-bounce shadow-[0_0_8px_rgba(255,183,131,0.5)]" : "bg-primary animate-pulse shadow-[0_0_8px_rgba(192,193,255,0.5)]"
               )} />
             </div>
           </div>
