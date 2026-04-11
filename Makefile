@@ -16,11 +16,11 @@ help:
 	@echo "  make clean       - Clear temporary caches and artifacts"
 
 setup:
-	cd rag && uv sync
+	cd rag && unset VIRTUAL_ENV && uv sync
 	cd mcp_bridge && npm install
 
 start-api:
-	cd rag && uv run uvicorn rag.main:app --reload
+	cd rag && unset VIRTUAL_ENV && uv run uvicorn rag.main:app --reload
 
 start-mcp:
 	cd mcp_bridge && npm run build && npm run start
@@ -29,22 +29,22 @@ inspector:
 	cd mcp_bridge && npm run build && npm run inspector
 
 db-wipe:
-	cd rag && uv run rag start --test-mode
+	cd rag && unset VIRTUAL_ENV && uv run rag start --test-mode
 
 db-upgrade:
-	cd rag && uv run rag start
+	cd rag && unset VIRTUAL_ENV && uv run rag start
 
 test:
-	cd rag && uv run pytest
+	cd rag && unset VIRTUAL_ENV && uv run pytest
 	cd mcp_bridge && npm run test
 
 lint:
-	cd rag && uv run pre-commit run --all-files
+	cd rag && unset VIRTUAL_ENV && uv run pre-commit run --all-files
 	cd mcp_bridge && npm run check
 
 format:
-	cd rag && uv run pre-commit run --all-files
+	cd rag && unset VIRTUAL_ENV && uv run pre-commit run --all-files
 	cd mcp_bridge && npm run format
 
 clean:
-	cd rag && uv run rag clean-cache
+	cd rag && unset VIRTUAL_ENV && uv run rag clean-cache

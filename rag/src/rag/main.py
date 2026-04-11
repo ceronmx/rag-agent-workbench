@@ -28,6 +28,7 @@ app.include_router(ingestion_router)
 app.include_router(documents_router)
 app.include_router(evaluation_router)
 
+
 @app.middleware("http")
 async def log_requests(request, call_next):
     start_time = time.time()
@@ -37,6 +38,7 @@ async def log_requests(request, call_next):
         f"Path: {request.url.path} | Method: {request.method} | Status: {response.status_code} | Time: {process_time:.4f}s"
     )
     return response
+
 
 @app.get("/health", tags=["Health"])
 async def health_check():

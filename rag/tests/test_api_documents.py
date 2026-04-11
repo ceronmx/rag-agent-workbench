@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 client = TestClient(app)
 
+
 def test_list_documents_success():
     mock_service = MagicMock()
     mock_service.list_documents.return_value = [
@@ -13,12 +14,13 @@ def test_list_documents_success():
     app.dependency_overrides[get_document_service] = lambda: mock_service
 
     response = client.get("/documents/")
-    
+
     app.dependency_overrides.clear()
 
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["document_name"] == "doc1.pdf"
+
 
 def test_delete_document_success():
     mock_service = MagicMock()
@@ -26,11 +28,12 @@ def test_delete_document_success():
     app.dependency_overrides[get_document_service] = lambda: mock_service
 
     response = client.delete("/documents/doc1.pdf")
-    
+
     app.dependency_overrides.clear()
 
     assert response.status_code == 200
     assert response.json()["status"] == "success"
+
 
 def test_delete_document_not_found():
     mock_service = MagicMock()
@@ -38,7 +41,7 @@ def test_delete_document_not_found():
     app.dependency_overrides[get_document_service] = lambda: mock_service
 
     response = client.delete("/documents/nonexistent.pdf")
-    
+
     app.dependency_overrides.clear()
 
     assert response.status_code == 404

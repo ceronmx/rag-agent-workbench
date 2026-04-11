@@ -3,6 +3,7 @@ from sqlalchemy import func
 from rag.models.database import Chunk
 from typing import List, Dict, Any
 
+
 class DocumentService:
     def __init__(self, db: Session):
         self.db = db
@@ -15,17 +16,17 @@ class DocumentService:
             self.db.query(
                 Chunk.document_name,
                 func.count(Chunk.id).label("chunk_count"),
-                func.max(Chunk.file_type).label("file_type")
+                func.max(Chunk.file_type).label("file_type"),
             )
             .group_by(Chunk.document_name)
             .all()
         )
-        
+
         return [
             {
                 "document_name": r.document_name,
                 "chunk_count": r.chunk_count,
-                "file_type": r.file_type
+                "file_type": r.file_type,
             }
             for r in results
         ]
@@ -35,7 +36,11 @@ class DocumentService:
         Delete all chunks associated with a document name.
         """
         try:
-            num_deleted = self.db.query(Chunk).filter(Chunk.document_name == document_name).delete()
+            num_deleted = (
+                self.db.query(Chunk)
+                .filter(Chunk.document_name == document_name)
+                .delete()
+            )
             self.db.commit()
             return num_deleted > 0
         except Exception as e:

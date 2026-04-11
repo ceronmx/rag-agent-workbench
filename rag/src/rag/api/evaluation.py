@@ -5,10 +5,11 @@ from rag.services.evaluation import EvaluationService
 
 router = APIRouter(prefix="/evaluate", tags=["Evaluation"])
 
+
 @router.post("/", response_model=EvaluationResponse)
 async def run_evaluation(
     request: EvaluationRequest,
-    evaluation_service: EvaluationService = Depends(get_evaluation_service)
+    evaluation_service: EvaluationService = Depends(get_evaluation_service),
 ):
     """
     Run a RAGAS evaluation on a given golden set.
