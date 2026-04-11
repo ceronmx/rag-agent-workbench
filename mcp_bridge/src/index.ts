@@ -6,10 +6,60 @@ import { z } from 'zod';
 // Configuration for the local RAG API
 const RAG_API_BASE_URL = process.env.RAG_API_BASE_URL || 'http://127.0.0.1:8000';
 
-const server = new McpServer({
+export const server = new McpServer({
   name: 'rag-bridge',
   version: '1.0.0',
 });
+
+/**
+ * Handler for the rag_query tool.
+ */
+export async function ragQueryHandler({
+  question,
+  search_mode,
+  top_k,
+}: {
+  question: string;
+  search_mode?: 'vector' | 'keyword' | 'hybrid';
+  top_k?: number;
+}) {
+  try {
+    const response = await axios.post(`${RAG_API_BASE_URL}/query/`, {
+      question,
+      search_mode: search_mode || 'vector',
+      top_k: top_k || 3,
+      use_stream: false,
+    });
+
+    const data = response.data;
+
+    // Format the response for the MCP client
+    let resultText = `Answer: ${data.answer}\n\n`;
+    resultText += `Search Query used: ${data.search_query}\n`;
+    resultText += `Search Mode: ${data.search_mode}\n\n`;
+    resultText += 'Contexts used:\n';
+
+    for (const context of data.contexts) {
+      resultText += `--- Document: ${context.document_name} (Chunk ${context.chunk_index}) ---\n`;
+      resultText += `${context.text}\n\n`;
+    }
+
+    return {
+      content: [{ type: 'text' as const, text: resultText }],
+    };
+  } catch (error) {
+    let errorMessage = 'Unknown error';
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.detail || error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    return {
+      content: [{ type: 'text' as const, text: `Error calling RAG API: ${errorMessage}` }],
+      isError: true,
+    };
+  }
+}
 
 /**
  * Register the 'rag_query' tool.
@@ -28,44 +78,7 @@ server.registerTool(
       top_k: z.number().default(3).describe('Number of context chunks to retrieve'),
     },
   },
-  async ({ question, search_mode, top_k }) => {
-    try {
-      const response = await axios.post(`${RAG_API_BASE_URL}/query/`, {
-        question,
-        search_mode,
-        top_k,
-        use_stream: false,
-      });
-
-      const data = response.data;
-
-      // Format the response for the MCP client
-      let resultText = `Answer: ${data.answer}\n\n`;
-      resultText += `Search Query used: ${data.search_query}\n`;
-      resultText += `Search Mode: ${data.search_mode}\n\n`;
-      resultText += 'Contexts used:\n';
-
-      for (const context of data.contexts) {
-        resultText += `--- Document: ${context.document_name} (Chunk ${context.chunk_index}) ---\n`;
-        resultText += `${context.text}\n\n`;
-      }
-
-      return {
-        content: [{ type: 'text', text: resultText }],
-      };
-    } catch (error) {
-      let errorMessage = 'Unknown error';
-      if (axios.isAxiosError(error)) {
-        errorMessage = error.response?.data?.detail || error.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      return {
-        content: [{ type: 'text', text: `Error calling RAG API: ${errorMessage}` }],
-        isError: true,
-      };
-    }
-  },
+  ragQueryHandler,
 );
 
 /**
@@ -77,7 +90,10 @@ async function main() {
   console.error('RAG MCP Bridge server running on stdio');
 }
 
-main().catch((error) => {
-  console.error('Fatal error starting MCP server:', error);
-  process.exit(1);
-});
+// Only run main if this file is being executed directly
+if (import.meta.url.endsWith(process.argv[1]) || process.env.NODE_ENV !== 'test') {
+  main().catch((error) => {
+    console.error('Fatal error starting MCP server:', error);
+    process.exit(1);
+  });
+}
