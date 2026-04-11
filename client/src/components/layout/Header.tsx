@@ -7,7 +7,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export function Header() {
+interface HeaderProps {
+  searchQuery?: string
+  onSearchChange?: (value: string) => void
+}
+
+export function Header({ searchQuery, onSearchChange }: HeaderProps) {
   return (
     <header className="h-20 lg:h-24 border-b border-border flex items-center justify-between px-6 lg:px-8 bg-background/50 backdrop-blur-md">
       <div className="flex items-center gap-6 flex-1 max-w-2xl">
@@ -21,6 +26,8 @@ export function Header() {
         <div className="relative w-full max-w-md hidden md:block">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search embeddings..." 
             className="pl-12 h-12 bg-surface-container-low border-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-base rounded-xl"
           />
