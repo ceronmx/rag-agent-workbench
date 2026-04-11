@@ -17,16 +17,16 @@ help:
 
 setup:
 	cd rag && unset VIRTUAL_ENV && uv sync
-	cd mcp_bridge && npm install
+	cd mcp_bridge && pnpm install
 
 start-api:
 	cd rag && unset VIRTUAL_ENV && uv run uvicorn rag.main:app --reload
 
 start-mcp:
-	cd mcp_bridge && npm run build && npm run start
+	cd mcp_bridge && pnpm run build && pnpm run start
 
 inspector:
-	cd mcp_bridge && npm run build && npm run inspector
+	cd mcp_bridge && pnpm run build && pnpm run inspector
 
 db-wipe:
 	cd rag && unset VIRTUAL_ENV && uv run rag start --test-mode
@@ -36,15 +36,15 @@ db-upgrade:
 
 test:
 	cd rag && unset VIRTUAL_ENV && uv run pytest
-	cd mcp_bridge && npm run test
+	cd mcp_bridge && pnpm run test
 
 lint:
 	cd rag && unset VIRTUAL_ENV && uv run pre-commit run --all-files
-	cd mcp_bridge && npm run check
+	cd mcp_bridge && pnpm run check
 
 format:
 	cd rag && unset VIRTUAL_ENV && uv run pre-commit run --all-files
-	cd mcp_bridge && npm run format
+	cd mcp_bridge && pnpm run format
 
 clean:
 	cd rag && unset VIRTUAL_ENV && uv run rag clean-cache
