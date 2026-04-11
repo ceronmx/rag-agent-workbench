@@ -1,24 +1,15 @@
-import { 
-  Loader2, 
-  AlertCircle 
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { useRAGQuery } from "@/hooks/useRAGQuery"
-import { useDocuments } from "@/hooks/useDocuments"
-import { cn } from "@/lib/utils"
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useDocuments } from "@/hooks/useDocuments";
+import { useRAGQuery } from "@/hooks/useRAGQuery";
+import { cn } from "@/lib/utils";
 
 export function SynthesisResult() {
-  const { 
-    lastResult, 
-    isLoading, 
-    isError, 
-    error, 
-    clearResult 
-  } = useRAGQuery()
-  
-  const { uploadMutation } = useDocuments()
+  const { lastResult, isLoading, isError, error, clearResult } = useRAGQuery();
+
+  const { uploadMutation } = useDocuments();
 
   return (
     <div className="space-y-6 mb-10">
@@ -30,11 +21,13 @@ export function SynthesisResult() {
           {lastResult ? "Latest Synthesis" : "System Ready"}
         </h2>
       </div>
-      
-      <Card className={cn(
-        "p-6 bg-surface-container-low border-l-4 rounded-r-xl space-y-4 border-y-0 border-r-0 transition-all shadow-lg",
-        isError ? "border-error" : "border-primary/40"
-      )}>
+
+      <Card
+        className={cn(
+          "p-6 bg-surface-container-low border-l-4 rounded-r-xl space-y-4 border-y-0 border-r-0 transition-all shadow-lg",
+          isError ? "border-error" : "border-primary/40",
+        )}
+      >
         {isLoading ? (
           <div className="flex items-center gap-4 py-4">
             <Loader2 className="animate-spin text-primary" size={24} />
@@ -45,7 +38,9 @@ export function SynthesisResult() {
         ) : isError ? (
           <div className="flex items-center gap-3 text-error">
             <AlertCircle size={20} />
-            <p className="text-sm font-medium">Query Error: {(error as any)?.message || "Failed to get response"}</p>
+            <p className="text-sm font-medium">
+              Query Error: {(error as any)?.message || "Failed to get response"}
+            </p>
           </div>
         ) : lastResult ? (
           <div className="space-y-4">
@@ -53,17 +48,21 @@ export function SynthesisResult() {
               {lastResult.answer}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              {lastResult.contexts.slice(0, 3).map((ctx, idx) => (
-                <Badge key={idx} variant="secondary" className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none">
+              {lastResult.contexts.slice(0, 3).map((ctx) => (
+                <Badge
+                  key={`${ctx.document_name}-${ctx.chunk_index}`}
+                  variant="secondary"
+                  className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none"
+                >
                   Source: {ctx.document_name}
                 </Badge>
               ))}
               <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(192,193,255,0.5)]" />
             </div>
             <div className="pt-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={clearResult}
                 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground h-auto p-0"
               >
@@ -74,22 +73,29 @@ export function SynthesisResult() {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-on-surface-variant leading-relaxed font-medium">
-              {uploadMutation.isPending 
-                ? "Ingesting your document into the vector space..." 
+              {uploadMutation.isPending
+                ? "Ingesting your document into the vector space..."
                 : "Welcome to Cognitive Monolith. Start by uploading documents or asking a question below."}
             </p>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none">
+              <Badge
+                variant="secondary"
+                className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none"
+              >
                 {uploadMutation.isPending ? "UPLOADING" : "SYSTEM READY"}
               </Badge>
-              <div className={cn(
-                "w-2 h-2 rounded-full",
-                uploadMutation.isPending ? "bg-tertiary animate-bounce shadow-[0_0_8px_rgba(255,183,131,0.5)]" : "bg-primary animate-pulse shadow-[0_0_8px_rgba(192,193,255,0.5)]"
-              )} />
+              <div
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  uploadMutation.isPending
+                    ? "bg-tertiary animate-bounce shadow-[0_0_8px_rgba(255,183,131,0.5)]"
+                    : "bg-primary animate-pulse shadow-[0_0_8px_rgba(192,193,255,0.5)]",
+                )}
+              />
             </div>
           </div>
         )}
       </Card>
     </div>
-  )
+  );
 }

@@ -1,15 +1,13 @@
-import { useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Layout } from "./components/layout/Layout"
-
+import { useState } from "react";
+import { ContextualInsights } from "./components/chat/results/ContextualInsights";
+import { SynthesisResult } from "./components/chat/results/SynthesisResult";
 // Modular Components
-import { DocumentList } from "./components/documents/DocumentList"
-import { DocumentUpload } from "./components/documents/DocumentUpload"
-import { SynthesisResult } from "./components/chat/results/SynthesisResult"
-import { ContextualInsights } from "./components/chat/results/ContextualInsights"
+import { DocumentList } from "./components/documents/DocumentList";
+import { DocumentUpload } from "./components/documents/DocumentUpload";
+import { Layout } from "./components/layout/Layout";
 
 function App() {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <Layout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
@@ -30,7 +28,7 @@ function App() {
 
       <ContextualInsights />
     </Layout>
-  )
+  );
 }
 
-export default App
+export default App;

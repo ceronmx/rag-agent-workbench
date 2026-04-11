@@ -5,7 +5,7 @@ export interface DocumentInfo {
   // UI-specific properties
   size?: string;
   upload_date?: string;
-  status?: 'INDEXED' | 'PENDING' | 'ERROR';
+  status?: "INDEXED" | "PENDING" | "ERROR";
 }
 
 export interface ContextChunk {
@@ -26,7 +26,7 @@ export interface QueryResponse {
 
 export interface QueryRequest {
   question: string;
-  search_mode?: 'vector' | 'keyword' | 'hybrid';
+  search_mode?: "vector" | "keyword" | "hybrid";
   use_rescoring?: boolean;
   use_stream?: boolean;
   top_k?: number;

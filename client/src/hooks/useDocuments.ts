@@ -1,6 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api-client';
-import { DocumentInfo } from '../types/api';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "../lib/api-client";
 
 export function useDocuments() {
   const queryClient = useQueryClient();
@@ -12,22 +11,22 @@ export function useDocuments() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['documents'],
+    queryKey: ["documents"],
     queryFn: api.listDocuments,
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (args: { file: File; documentName?: string }) => 
+    mutationFn: (args: { file: File; documentName?: string }) =>
       api.ingestFile(args.file, args.documentName),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteDocument,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
   });
 

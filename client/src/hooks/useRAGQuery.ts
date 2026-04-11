@@ -1,7 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
-import { api } from '../lib/api-client';
-import { QueryRequest, QueryResponse } from '../types/api';
-import { useState } from 'react';
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { api } from "../lib/api-client";
+import type { QueryRequest, QueryResponse } from "../types/api";
 
 export function useRAGQuery() {
   const [lastResult, setLastResult] = useState<QueryResponse | null>(null);
