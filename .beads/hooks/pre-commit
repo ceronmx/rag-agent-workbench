@@ -10,12 +10,17 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ARGS+=(--hook-dir "$HERE" -- "$@")
 
 if command -v uv > /dev/null; then
-    exec uv --directory rag run pre-commit "${ARGS[@]}"
+    uv --directory rag run pre-commit "${ARGS[@]}"
 elif command -v pre-commit > /dev/null; then
-    exec pre-commit "${ARGS[@]}"
+    pre-commit "${ARGS[@]}"
 else
     echo '`pre-commit` not found.  Did you forget to install it or activate your virtualenv?' 1>&2
     exit 1
+fi
+
+# Run husky/lint-staged if available
+if [ -d ".husky" ]; then
+    sh .husky/pre-commit
 fi
 
 # --- BEGIN BEADS INTEGRATION v1.0.0 ---
