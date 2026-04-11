@@ -32,16 +32,18 @@ describe('MCP Bridge - rag_query tool', () => {
       top_k: 3,
     });
 
-    expect(mockedAxios.post).toHaveBeenCalledWith(expect.stringContaining('/query/'), {
+    expect(mockedAxios.post).toHaveBeenCalledWith(expect.stringContaining('/query'), {
       question: 'What is FastAPI?',
       search_mode: 'vector',
       top_k: 3,
       use_stream: false,
     });
 
-    expect(result.content[0].text).toContain('Answer: FastAPI is a modern web framework.');
-    expect(result.content[0].text).toContain('Document: docs.pdf (Chunk 0)');
-    expect(result.content[0].text).toContain('FastAPI is fast and easy to use.');
+    expect(result.content[0].text).toContain('FastAPI is a modern web framework.');
+    expect(result.content[0].text).toContain('Sources:');
+    expect(result.content[0].text).toContain('- docs.pdf');
+    expect(result.content[0].text).not.toContain('FastAPI is fast and easy to use.');
+    expect(result.content[0].text).not.toContain('Search Query used:');
   });
 
   it('should handle errors from RAG API gracefully', async () => {

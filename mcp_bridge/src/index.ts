@@ -34,15 +34,18 @@ export async function ragQueryHandler({
     const data = response.data;
 
     // Format the response for the MCP client
-    let resultText = `Answer: ${data.answer}\n\n`;
-    resultText += `Search Query used: ${data.search_query}\n`;
-    resultText += `Search Mode: ${data.search_mode}\n\n`;
-    resultText += 'Contexts used:\n';
+    let resultText = `${data.answer}\n\n`;
+    resultText += 'Sources:\n';
 
-    if (Array.isArray(data.contexts)){
+    if (Array.isArray(data.contexts)) {
+      // Use a Set to keep track of unique document names for cleaner citations
+      const uniqueDocs = new Set<string>();
       for (const context of data.contexts) {
-        resultText += `--- Document: ${context.document_name} (Chunk ${context.chunk_index}) ---\n`;
-        resultText += `${context.text}\n\n`;
+        uniqueDocs.add(context.document_name);
+      }
+
+      for (const docName of uniqueDocs) {
+        resultText += `- ${docName}\n`;
       }
     }
 
