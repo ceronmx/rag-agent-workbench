@@ -1,0 +1,50 @@
+{
+    "context": {
+        "fileName": [
+            "AGENTS.md",
+            "CONTEXT.md",
+            "GEMINI.md"
+        ]
+    },
+    "hooks": {
+        "SessionStart": [
+            {
+                "matcher": "startup",
+                "hooks": [
+                    {
+                        "name": "beads",
+                        "type": "command",
+                        "command": "bd prime"
+                    }
+                ]
+            }
+        ],
+        "SessionEnd": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "name": "beads",
+                        "type": "command",
+                        "command": "bd prime"
+                    }
+                ]
+            }
+        ],
+        "PreCompress": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "name": "beads",
+                        "type": "command",
+                        "command": "bd prime"
+                    }
+                ]
+            }
+        ]
+    },
+    "hooksConfig": {
+        "enabled": true
+    }
+}
