@@ -1,0 +1,1 @@
+cd mcp_bridge && npx lint-staged
