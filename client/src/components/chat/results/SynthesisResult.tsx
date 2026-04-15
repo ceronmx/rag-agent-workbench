@@ -24,7 +24,7 @@ export function SynthesisResult() {
 
       <Card
         className={cn(
-          "p-6 bg-surface-container-low border-l-4 rounded-r-xl space-y-4 border-y-0 border-r-0 transition-all shadow-lg",
+          "p-6 bg-surface-low border-l-4 rounded-r-xl space-y-4 border-y-0 border-r-0 transition-all shadow-lg",
           isError ? "border-error" : "border-primary/40",
         )}
       >
@@ -52,7 +52,7 @@ export function SynthesisResult() {
                 <Badge
                   key={`${ctx.document_name}-${ctx.chunk_index}`}
                   variant="secondary"
-                  className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none"
+                  className="bg-surface-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none"
                 >
                   Source: {ctx.document_name}
                 </Badge>
@@ -80,7 +80,7 @@ export function SynthesisResult() {
             <div className="flex items-center gap-2">
               <Badge
                 variant="secondary"
-                className="bg-surface-container-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none"
+                className="bg-surface-highest text-[10px] font-bold tracking-wider px-3 py-1 uppercase rounded-md border-none"
               >
                 {uploadMutation.isPending ? "UPLOADING" : "SYSTEM READY"}
               </Badge>

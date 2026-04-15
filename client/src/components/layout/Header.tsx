@@ -27,7 +27,7 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search embeddings..."
-            className="pl-12 h-12 bg-surface-container-low border-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-base rounded-xl"
+            className="pl-12 h-12 bg-surface-low border-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-base rounded-xl"
           />
         </div>
       </div>
@@ -48,7 +48,7 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
           <History size={22} />
         </Button>
         <Search className="text-muted-foreground md:hidden" size={24} />
-        <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-lg border-2 border-surface-container-highest overflow-hidden p-0.5">
+        <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-lg border-2 border-surface-highest overflow-hidden p-0.5">
           <img
             src="https://github.com/shadcn.png"
             alt="Avatar"

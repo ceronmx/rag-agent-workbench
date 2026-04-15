@@ -28,7 +28,7 @@ export function QueryBar({ onQuery, isLoading }: QueryBarProps) {
   };
 
   return (
-    <Card className="max-w-4xl mx-auto p-2 bg-surface-container-low/95 backdrop-blur-2xl border border-white/5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-2xl">
+    <Card className="max-w-4xl mx-auto p-2 bg-surface-low/95 backdrop-blur-2xl border border-white/5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-2xl">
       <div className="relative flex items-center">
         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground">
           <User size={20} />
@@ -39,7 +39,7 @@ export function QueryBar({ onQuery, isLoading }: QueryBarProps) {
           onKeyDown={handleKeyDown}
           disabled={isLoading}
           placeholder="Ask RAG..."
-          className="pl-16 pr-40 h-16 bg-surface-container-highest/20 border-none ring-offset-background placeholder:text-muted-foreground/40 focus-visible:ring-ring text-lg rounded-xl font-medium shadow-inner"
+          className="pl-16 pr-40 h-16 bg-surface-highest/20 border-none ring-offset-background placeholder:text-muted-foreground/40 focus-visible:ring-ring text-lg rounded-xl font-medium shadow-inner"
         />
         <Button
           onClick={handleSubmit}

@@ -19,21 +19,21 @@ export function Sidebar({ className }: SidebarProps) {
       <nav className="flex-1 px-4 space-y-1.5 mt-4">
         <Button
           variant="secondary"
-          className="w-full justify-start gap-3 bg-surface-container-highest/50 text-foreground border-none hover:bg-surface-container-highest h-11 px-4"
+          className="w-full justify-start gap-3 bg-surface-highest/50 text-foreground border-none hover:bg-surface-highest h-11 px-4"
         >
           <LayoutGrid size={20} className="text-primary" />
           <span className="font-medium">KNOWLEDGE BASE</span>
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground h-11 px-4 hover:bg-surface-container-highest/30"
+          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground h-11 px-4 hover:bg-surface-highest/30"
         >
           <Settings size={20} />
           <span className="font-medium uppercase tracking-wide text-xs">Settings</span>
         </Button>
       </nav>
 
-      <div className="p-6 border-t border-border flex items-center gap-3 mt-auto bg-surface-container-lowest/50">
+      <div className="p-6 border-t border-border flex items-center gap-3 mt-auto bg-surface-lowest/50">
         <div className="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center border border-border">
           <User size={20} />
         </div>

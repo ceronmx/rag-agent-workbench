@@ -6,6 +6,15 @@ A centralized workspace for the RAG (Retrieval-Augmented Generation) system and 
 
 - **`rag/`**: Python-based RAG system using FastAPI, PostgreSQL (pgvector), and Ollama.
 - **`mcp_bridge/`**: Node.js/TypeScript MCP server that exposes RAG tools to LLMs.
+- **`client/`**: React-based frontend for interacting with the RAG system.
+
+## ⚓ Git Hooks
+
+This project uses **Husky** and **lint-staged** to ensure code quality.
+
+The following checks run automatically on every commit:
+- **`mcp_bridge/`**: Biome check (lint & format) for staged TypeScript files.
+- **`client/`**: Biome check (lint & format) for staged React/TypeScript files.
 
 ## 🛠️ Management (Makefile)
 

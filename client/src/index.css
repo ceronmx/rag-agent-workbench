@@ -39,15 +39,15 @@
   --color-input: #464554;
   --color-ring: #c0c1ff;
 
-  /* Custom surface colors from your original theme */
+  /* Simplified surface color names for better utility generation */
   --color-surface: #0b1326;
   --color-surface-dim: #0b1326;
   --color-surface-bright: #31394d;
-  --color-surface-container-lowest: #060e20;
-  --color-surface-container-low: #131b2e;
-  --color-surface-container: #171f33;
-  --color-surface-container-high: #222a3d;
-  --color-surface-container-highest: #2d3449;
+  --color-surface-lowest: #060e20;
+  --color-surface-low: #131b2e;
+  --color-surface-mid: #171f33;
+  --color-surface-high: #222a3d;
+  --color-surface-highest: #2d3449;
 
   --color-on-surface: #dae2fd;
   --color-on-surface-variant: #c7c4d7;
@@ -60,12 +60,17 @@
 
 @layer base {
   body {
-    @apply antialiased bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
   }
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--color-border);
+    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
   }
   html {
-    @apply font-sans;
+    font-family: var(--font-sans);
   }
 }
+

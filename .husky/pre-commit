@@ -1,1 +1,2 @@
-cd mcp_bridge && npx lint-staged
+(cd mcp_bridge && npx lint-staged)
+(cd client && npx lint-staged)

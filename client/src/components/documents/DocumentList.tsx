@@ -45,7 +45,7 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
 
   if (isLoading) {
     return (
-      <Card className="border-none bg-surface-container-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex items-center justify-center">
+      <Card className="border-none bg-surface-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={32} />
       </Card>
     );
@@ -53,7 +53,7 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
 
   if (filteredDocuments.length === 0) {
     return (
-      <Card className="border-none bg-surface-container-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex flex-col items-center justify-center text-muted-foreground space-y-2">
+      <Card className="border-none bg-surface-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex flex-col items-center justify-center text-muted-foreground space-y-2">
         <FileText size={40} className="opacity-20" />
         <p className="font-medium italic">
           {searchQuery ? `No files matching "${searchQuery}"` : "No documents uploaded yet."}
@@ -65,9 +65,9 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
   return (
     <>
       {/* Desktop View (Table) */}
-      <Card className="hidden lg:block border-none bg-surface-container-lowest overflow-hidden shadow-2xl rounded-2xl">
+      <Card className="hidden lg:block border-none bg-surface-lowest overflow-hidden shadow-2xl rounded-2xl">
         <Table>
-          <TableHeader className="bg-surface-container-low/50">
+          <TableHeader className="bg-surface-low/50">
             <TableRow className="hover:bg-transparent border-border h-16">
               <TableHead className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em] pl-8">
                 File Name
@@ -87,11 +87,11 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
             {filteredDocuments.map((file) => (
               <TableRow
                 key={file.document_name}
-                className="border-border hover:bg-surface-container/30 transition-colors h-24"
+                className="border-border hover:bg-surface-mid/30 transition-colors h-24"
               >
                 <TableCell className="font-semibold py-4 pl-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-lg flex items-center justify-center border border-border/50 shadow-sm bg-surface-container-highest text-primary">
+                    <div className="w-11 h-11 rounded-lg flex items-center justify-center border border-border/50 shadow-sm bg-surface-highest text-primary">
                       <FileText size={22} />
                     </div>
                     <span className="text-base font-bold">{file.document_name}</span>
@@ -103,7 +103,7 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
                 <TableCell>
                   <Badge
                     variant="secondary"
-                    className="bg-surface-container-highest text-foreground border-none px-4 py-1.5 font-bold text-[10px] tracking-widest rounded-full"
+                    className="bg-surface-highest text-foreground border-none px-4 py-1.5 font-bold text-[10px] tracking-widest rounded-full"
                   >
                     <div className="w-1.5 h-1.5 rounded-full mr-2 bg-primary" />
                     INDEXED
@@ -146,10 +146,10 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
         {filteredDocuments.map((file) => (
           <Card
             key={file.document_name}
-            className="p-4 bg-surface-container-low border-none flex items-center justify-between rounded-xl"
+            className="p-4 bg-surface-low border-none flex items-center justify-between rounded-xl"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-on-surface border border-border/30">
+              <div className="w-12 h-12 rounded-xl bg-surface-lowest flex items-center justify-center text-on-surface border border-border/30">
                 <FileText size={24} />
               </div>
               <div className="space-y-1">
@@ -170,7 +170,7 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="bg-surface-container-highest/50 h-10 w-10 rounded-xl"
+                className="bg-surface-highest/50 h-10 w-10 rounded-xl"
                 onClick={() => handleDelete(file.document_name)}
                 disabled={deleteMutation.isPending}
               >

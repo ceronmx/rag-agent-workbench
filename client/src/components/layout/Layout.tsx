@@ -27,7 +27,7 @@ export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans overflow-hidden">
       {/* Sidebar - Desktop */}
-      <Sidebar className="hidden lg:flex w-64 flex-col border-r border-border bg-surface-container-low" />
+      <Sidebar className="hidden lg:flex w-64 flex-col border-r border-border bg-surface-low" />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 relative">
@@ -38,7 +38,7 @@ export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
         </main>
 
         {/* Floating Query Bar - Fixed at bottom of main content */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-8 pointer-events-none z-20">
+        <div className="fixed bottom-0 left-0 right-0 lg:left-64 p-4 lg:p-8 pointer-events-none z-40 mb-16 lg:mb-0">
           <div className="max-w-4xl mx-auto pointer-events-auto">
             <QueryBar onQuery={handleQuery} isLoading={isQueryLoading} />
           </div>
@@ -49,7 +49,7 @@ export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileNav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-container-low border-t border-border z-50" />
+      <MobileNav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-low border-t border-border z-50" />
     </div>
   );
 }
