@@ -1,6 +1,8 @@
-import type React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useRAGQuery } from "@/hooks/useRAGQuery";
+import { useRAGStream } from "@/hooks/useRAGStream";
+import { FloatingConversation } from "../chat/FloatingConversation";
 import { QueryBar } from "../chat/QueryBar";
 import { Header } from "./Header";
 import { MobileNav } from "./MobileNav";
@@ -13,12 +15,17 @@ interface LayoutProps {
 }
 
 export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
-  const { queryMutation, isLoading: isQueryLoading } = useRAGQuery();
+  const { queryMutation } = useRAGQuery();
+  const { streamQuery, content, isStreaming, reset: resetStream } = useRAGStream();
+  const [isConversationOpen, setIsConversationOpen] = useState(false);
 
   const handleQuery = async (question: string) => {
     try {
-      await queryMutation.mutateAsync({ question });
-      toast.success("Query successful");
+      setIsConversationOpen(true);
+      await streamQuery({ question });
+      // After stream finishes, we can still call the original mutation to update 
+      // the global state (SynthesisResult, etc.) if needed, or just rely on the stream.
+      // For now, let's just stream.
     } catch (err) {
       toast.error(`Query failed: ${(err as any).message || "Unknown error"}`);
     }
@@ -37,10 +44,18 @@ export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
 
+        {/* Floating Conversation Box */}
+        <FloatingConversation 
+          isOpen={isConversationOpen}
+          content={content}
+          isStreaming={isStreaming}
+          onClose={() => setIsConversationOpen(false)}
+        />
+
         {/* Floating Query Bar - Fixed at bottom of main content */}
         <div className="fixed bottom-0 left-0 right-0 lg:left-64 p-4 lg:p-8 pointer-events-none z-40 mb-16 lg:mb-0">
           <div className="max-w-4xl mx-auto pointer-events-auto">
-            <QueryBar onQuery={handleQuery} isLoading={isQueryLoading} />
+            <QueryBar onQuery={handleQuery} isLoading={isStreaming} />
           </div>
         </div>
 
