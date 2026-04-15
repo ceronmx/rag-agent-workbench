@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Visual Regression", () => {
   test("Desktop Viewport", async ({ page }) => {
@@ -8,8 +8,8 @@ test.describe("Visual Regression", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(3000);
     await expect(page).toHaveScreenshot("desktop.png", {
-        fullPage: true,
-        maxDiffPixelRatio: 0.1, // Allowing more leeway due to OS differences
+      fullPage: true,
+      maxDiffPixelRatio: 0.1, // Allowing more leeway due to OS differences
     });
   });
 
@@ -20,8 +20,8 @@ test.describe("Visual Regression", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(3000);
     await expect(page).toHaveScreenshot("mobile.png", {
-        fullPage: true,
-        maxDiffPixelRatio: 0.1,
+      fullPage: true,
+      maxDiffPixelRatio: 0.1,
     });
   });
 });

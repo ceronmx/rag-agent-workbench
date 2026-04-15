@@ -38,7 +38,7 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  // @ts-ignore - Vitest config
+  // @ts-expect-error - Vitest config
   test: {
     globals: true,
     environment: "jsdom",

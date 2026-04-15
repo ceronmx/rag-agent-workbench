@@ -21,6 +21,9 @@ export function DocumentUpload() {
           loading: `Uploading ${file.name}...`,
           success: `${file.name} ingested successfully`,
           error: (err) => `Upload failed: ${err.message || "Unknown error"}`,
+          classNames: {
+            loading: "bg-blue-600 text-white border-blue-700",
+          },
         });
         await promise;
         e.target.value = "";

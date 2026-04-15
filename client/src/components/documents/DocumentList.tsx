@@ -35,6 +35,9 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
           loading: `Deleting ${name}...`,
           success: `${name} deleted successfully`,
           error: (err) => `Delete failed: ${err.message || "Unknown error"}`,
+          classNames: {
+            loading: "bg-blue-600 text-white border-blue-700",
+          },
         });
         await promise;
       } catch (_err) {
