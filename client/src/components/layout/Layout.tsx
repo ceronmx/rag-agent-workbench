@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { useRAGQuery } from "@/hooks/useRAGQuery";
 import { useRAGStream } from "@/hooks/useRAGStream";
 import { FloatingConversation } from "../chat/FloatingConversation";
 import { QueryBar } from "../chat/QueryBar";
@@ -15,15 +14,14 @@ interface LayoutProps {
 }
 
 export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
-  const { queryMutation } = useRAGQuery();
-  const { streamQuery, content, isStreaming, reset: resetStream } = useRAGStream();
+  const { streamQuery, content, isStreaming } = useRAGStream();
   const [isConversationOpen, setIsConversationOpen] = useState(false);
 
   const handleQuery = async (question: string) => {
     try {
       setIsConversationOpen(true);
       await streamQuery({ question });
-      // After stream finishes, we can still call the original mutation to update 
+      // After stream finishes, we can still call the original mutation to update
       // the global state (SynthesisResult, etc.) if needed, or just rely on the stream.
       // For now, let's just stream.
     } catch (err) {
@@ -45,7 +43,7 @@ export function Layout({ children, searchQuery, onSearchChange }: LayoutProps) {
         </main>
 
         {/* Floating Conversation Box */}
-        <FloatingConversation 
+        <FloatingConversation
           isOpen={isConversationOpen}
           content={content}
           isStreaming={isStreaming}

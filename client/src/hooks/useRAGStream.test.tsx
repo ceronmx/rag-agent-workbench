@@ -1,5 +1,5 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useRAGStream } from "./useRAGStream";
 
 describe("useRAGStream", () => {
@@ -13,12 +13,14 @@ describe("useRAGStream", () => {
     const mockChunks = [
       'data: {"content": "Hello"}\n\n',
       'data: {"content": " world"}\n\n',
-      'data: [DONE]\n\n',
+      "data: [DONE]\n\n",
     ];
 
     const stream = new ReadableStream({
       start(controller) {
-        mockChunks.forEach(chunk => controller.enqueue(new TextEncoder().encode(chunk)));
+        mockChunks.forEach((chunk) => {
+          controller.enqueue(new TextEncoder().encode(chunk));
+        });
         controller.close();
       },
     });
