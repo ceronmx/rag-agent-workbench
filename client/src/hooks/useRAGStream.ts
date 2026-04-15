@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+import { api } from "../lib/api-client";
 import type { QueryRequest } from "../types/api";
 
 export function useRAGStream() {
@@ -12,16 +13,7 @@ export function useRAGStream() {
     setError(null);
 
     try {
-      const response = await fetch("/api/query/stream", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...request,
-          use_stream: true,
-        }),
-      });
+      const response = await api.queryStream(request);
 
       if (!response.ok) {
         throw new Error(response.statusText || "Failed to fetch");

@@ -1,12 +1,17 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { api } from "../lib/api-client";
 import { useRAGStream } from "./useRAGStream";
+
+vi.mock("../lib/api-client", () => ({
+  api: {
+    queryStream: vi.fn(),
+  },
+}));
 
 describe("useRAGStream", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock global fetch
-    global.fetch = vi.fn();
   });
 
   it("should stream content correctly", async () => {
@@ -25,7 +30,7 @@ describe("useRAGStream", () => {
       },
     });
 
-    (global.fetch as any).mockResolvedValue({
+    (api.queryStream as any).mockResolvedValue({
       ok: true,
       body: stream,
     });
@@ -41,7 +46,7 @@ describe("useRAGStream", () => {
   });
 
   it("should handle errors during streaming", async () => {
-    (global.fetch as any).mockResolvedValue({
+    (api.queryStream as any).mockResolvedValue({
       ok: false,
       statusText: "Internal Server Error",
     });
