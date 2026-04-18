@@ -20,7 +20,9 @@ function App() {
               Data Sources
             </h2>
           </div>
-          <DocumentUpload />
+          <div className="hidden lg:block">
+            <DocumentUpload />
+          </div>
         </div>
 
         <DocumentList searchQuery={searchQuery} />

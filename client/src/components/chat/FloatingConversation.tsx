@@ -63,7 +63,7 @@ export function FloatingConversation({
             {isStreaming && (
               <div className="flex items-center gap-2 text-[10px] font-bold text-primary animate-pulse">
                 <Loader2 size={12} className="animate-spin" />
-                AI IS TYPING...
+                Thinking...
               </div>
             )}
             {/* Anchor for autoscrolling */}

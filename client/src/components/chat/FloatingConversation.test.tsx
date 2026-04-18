@@ -13,7 +13,7 @@ describe("FloatingConversation", () => {
       />
     );
     expect(screen.getByText("Hello world")).toBeInTheDocument();
-    expect(screen.getByText(/AI is typing/i)).toBeInTheDocument();
+    expect(screen.getByText(/Thinking/i)).toBeInTheDocument();
   });
 
   it("does not render content when isOpen is false", () => {

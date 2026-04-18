@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDocuments } from "@/hooks/useDocuments";
+import { DocumentUpload } from "./DocumentUpload";
 
 interface DocumentListProps {
   searchQuery: string;
@@ -56,11 +57,16 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
 
   if (filteredDocuments.length === 0) {
     return (
-      <Card className="border-none bg-surface-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[200px] flex flex-col items-center justify-center text-muted-foreground space-y-2">
-        <FileText size={40} className="opacity-20" />
-        <p className="font-medium italic">
-          {searchQuery ? `No files matching "${searchQuery}"` : "No documents uploaded yet."}
-        </p>
+      <Card className="border-none bg-surface-lowest overflow-hidden shadow-2xl rounded-2xl min-h-[300px] flex flex-col items-center justify-center text-muted-foreground space-y-6 p-8">
+        <div className="flex flex-col items-center justify-center space-y-2">
+          <FileText size={48} className="opacity-20" />
+          <p className="font-medium italic text-center max-w-[250px]">
+            {searchQuery
+              ? `No files matching "${searchQuery}"`
+              : "No documents uploaded yet. Start by adding your first source."}
+          </p>
+        </div>
+        {!searchQuery && <DocumentUpload />}
       </Card>
     );
   }
@@ -145,47 +151,54 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
       </Card>
 
       {/* Mobile View (List) */}
-      <div className="lg:hidden space-y-3">
-        {filteredDocuments.map((file) => (
-          <Card
-            key={file.document_name}
-            className="p-4 bg-surface-low border-none flex items-center justify-between rounded-xl"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-surface-lowest flex items-center justify-center text-on-surface border border-border/30">
-                <FileText size={24} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-bold text-sm tracking-tight truncate max-w-[150px]">
-                  {file.document_name}
-                </h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
-                    INDEXED
-                  </span>
-                  <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
-                    • {file.chunk_count} Chunks
-                  </span>
+      <div className="lg:hidden space-y-4">
+        {!searchQuery && (
+          <div className="pb-2">
+            <DocumentUpload />
+          </div>
+        )}
+        <div className="space-y-3">
+          {filteredDocuments.map((file) => (
+            <Card
+              key={file.document_name}
+              className="p-4 bg-surface-low border-none flex items-center justify-between rounded-xl"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-surface-lowest flex items-center justify-center text-on-surface border border-border/30">
+                  <FileText size={24} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-sm tracking-tight truncate max-w-[150px]">
+                    {file.document_name}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
+                      INDEXED
+                    </span>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
+                      • {file.chunk_count} Chunks
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bg-surface-highest/50 h-10 w-10 rounded-xl"
-                onClick={() => handleDelete(file.document_name)}
-                disabled={deleteMutation.isPending}
-              >
-                {deleteMutation.isPending && deleteMutation.variables === file.document_name ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Trash2 size={18} className="text-muted-foreground" />
-                )}
-              </Button>
-            </div>
-          </Card>
-        ))}
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-surface-highest/50 h-10 w-10 rounded-xl"
+                  onClick={() => handleDelete(file.document_name)}
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending && deleteMutation.variables === file.document_name ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    <Trash2 size={18} className="text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </>
   );

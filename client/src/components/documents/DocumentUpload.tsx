@@ -45,7 +45,7 @@ export function DocumentUpload() {
       <Button
         onClick={handleButtonClick}
         disabled={uploadMutation.isPending}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 font-bold h-12 px-6 rounded-xl shadow-lg shadow-primary/20 hidden lg:flex"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 font-bold h-12 px-6 rounded-xl shadow-lg shadow-primary/20 flex w-full sm:w-auto items-center justify-center"
       >
         {uploadMutation.isPending ? (
           <Loader2 className="animate-spin" size={20} />
