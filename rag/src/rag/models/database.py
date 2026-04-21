@@ -57,6 +57,15 @@ class Vector(UserDefinedType):
         return process
 
 
+class Document(Base):
+    __tablename__ = "documents"
+
+    document_name = Column(String, primary_key=True, index=True)
+    storage_path = Column(String, nullable=False)
+    file_type = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class Chunk(Base):
     __tablename__ = "chunks"
 

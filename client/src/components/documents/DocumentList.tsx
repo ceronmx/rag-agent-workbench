@@ -1,5 +1,5 @@
-import { Download, FileText, Loader2, Trash2 } from "lucide-react";
-import { useMemo } from "react";
+import { Download, FileText, Loader2, Trash2, Eye } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { useDocuments } from "@/hooks/useDocuments";
 import { DocumentUpload } from "./DocumentUpload";
+import { DocumentPreview } from "./DocumentPreview";
+import type { DocumentInfo } from "@/types/api";
 
 interface DocumentListProps {
   searchQuery: string;
@@ -21,6 +23,7 @@ interface DocumentListProps {
 
 export function DocumentList({ searchQuery }: DocumentListProps) {
   const { documents, isLoading, deleteMutation } = useDocuments();
+  const [previewDoc, setPreviewDoc] = useState<DocumentInfo | null>(null);
 
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) =>
@@ -123,6 +126,15 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => setPreviewDoc(file)}
+                      className="gap-2 text-primary hover:text-primary hover:bg-primary/10 font-bold uppercase text-[10px] tracking-[0.2em] h-10 px-4"
+                    >
+                      <Eye size={18} />
+                      Preview
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="gap-2 text-muted-foreground hover:text-foreground font-bold uppercase text-[10px] tracking-[0.2em] h-10 px-4"
                     >
                       <Download size={18} />
@@ -185,6 +197,14 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => setPreviewDoc(file)}
+                  className="bg-surface-highest/50 h-10 w-10 rounded-xl text-primary"
+                >
+                  <Eye size={18} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="bg-surface-highest/50 h-10 w-10 rounded-xl"
                   onClick={() => handleDelete(file.document_name)}
                   disabled={deleteMutation.isPending}
@@ -200,6 +220,14 @@ export function DocumentList({ searchQuery }: DocumentListProps) {
           ))}
         </div>
       </div>
+      
+      {/* Preview Window */}
+      {previewDoc && (
+        <DocumentPreview 
+          document={previewDoc} 
+          onClose={() => setPreviewDoc(null)} 
+        />
+      )}
     </>
   );
 }

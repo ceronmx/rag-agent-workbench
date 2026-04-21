@@ -2,6 +2,7 @@ export interface DocumentInfo {
   document_name: string;
   chunk_count: number;
   file_type: string;
+  preview_url?: string;
   // UI-specific properties
   size?: string;
   upload_date?: string;

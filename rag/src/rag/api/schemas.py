@@ -66,6 +66,7 @@ class DocumentInfo(BaseModel):
     document_name: str = Field(...)
     chunk_count: int = Field(...)
     file_type: str = Field(...)
+    preview_url: Optional[str] = Field(None)
 
 
 class EvaluationRequest(BaseModel):

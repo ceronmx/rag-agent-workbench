@@ -1,7 +1,8 @@
 import os
+import shutil
 from sqlalchemy.orm import Session
 from typing import Optional
-from rag.models.database import Chunk
+from rag.models.database import Chunk, Document
 from rag.models.ollama_client import get_embeddings
 from rag.rag.extractor import (
     extract_text_from_pdf,
@@ -14,10 +15,15 @@ from rag.rag.extractor import (
 from rag.rag.chunker import chunk_text, chunk_elements
 from rag.utils.logger import logger
 
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "data/uploads")
+
 
 class IngestionService:
     def __init__(self, db: Session):
         self.db = db
+        # Ensure upload directory exists
+        if not os.path.exists(UPLOAD_DIR):
+            os.makedirs(UPLOAD_DIR, exist_ok=True)
 
     async def ingest_file(
         self,
@@ -29,7 +35,16 @@ class IngestionService:
         doc_name = document_name or os.path.basename(file_path)
         ext = os.path.splitext(file_path)[1].lower()
 
+        # Save to persistent storage
+        storage_filename = f"{doc_name}{ext}" if not doc_name.endswith(ext) else doc_name
+        persistent_path = os.path.join(UPLOAD_DIR, storage_filename)
+        
+        # Avoid overwriting with same name if it's already there (optional but safer)
+        if os.path.abspath(file_path) != os.path.abspath(persistent_path):
+            shutil.copy(file_path, persistent_path)
+            
         logger.info(f"Ingesting {file_path} (Type: {ext}) as '{doc_name}'...")
+        logger.info(f"Stored original file at {persistent_path}")
 
         if HAS_UNSTRUCTURED:
             try:
@@ -60,6 +75,19 @@ class IngestionService:
         file_type = ext.replace(".", "")
 
         try:
+            # Create Document record
+            doc_record = self.db.query(Document).filter(Document.document_name == doc_name).first()
+            if not doc_record:
+                doc_record = Document(
+                    document_name=doc_name,
+                    storage_path=persistent_path,
+                    file_type=file_type
+                )
+                self.db.add(doc_record)
+            else:
+                doc_record.storage_path = persistent_path
+                doc_record.file_type = file_type
+
             for i, (txt, emb) in enumerate(zip(chunks_text, embeddings)):
                 chunk = Chunk(
                     text=txt,
