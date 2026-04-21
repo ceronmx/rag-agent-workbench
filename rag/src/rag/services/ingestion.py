@@ -36,13 +36,15 @@ class IngestionService:
         ext = os.path.splitext(file_path)[1].lower()
 
         # Save to persistent storage
-        storage_filename = f"{doc_name}{ext}" if not doc_name.endswith(ext) else doc_name
+        storage_filename = (
+            f"{doc_name}{ext}" if not doc_name.endswith(ext) else doc_name
+        )
         persistent_path = os.path.join(UPLOAD_DIR, storage_filename)
-        
+
         # Avoid overwriting with same name if it's already there (optional but safer)
         if os.path.abspath(file_path) != os.path.abspath(persistent_path):
             shutil.copy(file_path, persistent_path)
-            
+
         logger.info(f"Ingesting {file_path} (Type: {ext}) as '{doc_name}'...")
         logger.info(f"Stored original file at {persistent_path}")
 
@@ -76,12 +78,16 @@ class IngestionService:
 
         try:
             # Create Document record
-            doc_record = self.db.query(Document).filter(Document.document_name == doc_name).first()
+            doc_record = (
+                self.db.query(Document)
+                .filter(Document.document_name == doc_name)
+                .first()
+            )
             if not doc_record:
                 doc_record = Document(
                     document_name=doc_name,
                     storage_path=persistent_path,
-                    file_type=file_type
+                    file_type=file_type,
                 )
                 self.db.add(doc_record)
             else:

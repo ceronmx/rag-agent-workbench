@@ -57,7 +57,7 @@ async def preview_document(
             raise HTTPException(
                 status_code=404, detail=f"File for document '{document_name}' not found"
             )
-        
+
         # Determine media type based on extension
         ext = os.path.splitext(storage_path)[1].lower()
         media_type = "application/octet-stream"
@@ -67,12 +67,13 @@ async def preview_document(
             media_type = "text/plain"
         elif ext == ".docx":
             media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        
+
         return FileResponse(storage_path, media_type=media_type, filename=document_name)
     except HTTPException as e:
         raise e
     except Exception as e:
         import traceback
         from rag.utils.logger import logger
+
         logger.error(f"Error in preview_document: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))

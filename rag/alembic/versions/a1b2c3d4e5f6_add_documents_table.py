@@ -23,9 +23,16 @@ def upgrade() -> None:
         sa.Column("document_name", sa.String(), primary_key=True, index=True),
         sa.Column("storage_path", sa.String(), nullable=False),
         sa.Column("file_type", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=True,
+        ),
     )
-    op.create_index(op.f("ix_documents_file_type"), "documents", ["file_type"], unique=False)
+    op.create_index(
+        op.f("ix_documents_file_type"), "documents", ["file_type"], unique=False
+    )
 
 
 def downgrade() -> None:

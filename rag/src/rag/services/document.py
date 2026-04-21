@@ -39,7 +39,11 @@ class DocumentService:
         """
         try:
             # Get document info to find storage path
-            doc = self.db.query(Document).filter(Document.document_name == document_name).first()
+            doc = (
+                self.db.query(Document)
+                .filter(Document.document_name == document_name)
+                .first()
+            )
             if doc and os.path.exists(doc.storage_path):
                 try:
                     os.remove(doc.storage_path)
@@ -48,13 +52,13 @@ class DocumentService:
 
             # Delete Chunks
             self.db.query(Chunk).filter(Chunk.document_name == document_name).delete()
-            
+
             # Delete Document record
             num_deleted = 0
             if doc:
                 self.db.delete(doc)
                 num_deleted = 1
-                
+
             self.db.commit()
             return num_deleted > 0
         except Exception as e:
